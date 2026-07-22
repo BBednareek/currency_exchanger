@@ -1,9 +1,9 @@
 package org.learn.currencyexchanger.security;
 
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullMarked;
-import org.learn.currencyexchanger.user.domain.User;
+import org.learn.currencyexchanger.user.domain.exception.InvalidUsernameException;
 import org.learn.currencyexchanger.user.domain.UserRepository;
+import org.learn.currencyexchanger.user.domain.UsernamePolicy;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 public class DatabaseUserDetailsService implements UserDetailsService {
     private final UserRepository userRepository;
 
+    private static final String INVALID_CREDENTIALS = "Invalid credentials";
+
     public DatabaseUserDetailsService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
@@ -22,9 +24,18 @@ public class DatabaseUserDetailsService implements UserDetailsService {
     @NullMarked
     @Override
     public UserDetails loadUserByUsername(String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Invalid credentials"));
+        try {
+            String normalizedUsername = UsernamePolicy.normalize(username);
 
-        return AppUserPrincipal.from(user);
+            return userRepository.findByUsername(normalizedUsername)
+                    .map(AppUserPrincipal::from)
+                    .orElseThrow(this::invalidCredentials);
+        } catch (InvalidUsernameException exception) {
+            throw invalidCredentials();
+        }
+    }
+
+    private UsernameNotFoundException invalidCredentials() {
+        return new UsernameNotFoundException(INVALID_CREDENTIALS);
     }
 }

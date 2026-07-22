@@ -1,7 +1,8 @@
 package org.learn.currencyexchanger.user.domain;
 
 import jakarta.persistence.*;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.learn.currencyexchanger.user.domain.exception.DisabledUserCannotBeModifiedException;
+import org.learn.currencyexchanger.user.domain.exception.UserCannotBeUnlockedException;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -11,23 +12,23 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "app_user")
-@EntityListeners(AuditingEntityListener.class)
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(
             name = "password_hash",
-            nullable = false
+            nullable = false,
+            length = 255
     )
     private String passwordHash;
 
     @Column(
             name = "username",
             nullable = false,
-            length = 320
+            unique = true,
+            length = 50
     )
     private String username;
 
@@ -56,15 +57,15 @@ public class User {
 
     protected User() {}
 
-    public User(UUID id,
+    private User(UUID id,
                 String passwordHash,
                 String username,
                 UserRole userRole,
                 UserStatus status
     ) {
         this.id = Objects.requireNonNull(id);
-        this.passwordHash = Objects.requireNonNull(passwordHash);
-        this.username = Objects.requireNonNull(username);
+        this.passwordHash = requirePasswordHash(passwordHash);
+        this.username = UsernamePolicy.normalize(username);
         this.userRole = Objects.requireNonNull(userRole);
         this.status = Objects.requireNonNull(status);
     }
@@ -72,8 +73,8 @@ public class User {
     public static User register(String username, String passwordHash) {
         return new User(
                 UUID.randomUUID(),
-                username,
                 passwordHash,
+                username,
                 UserRole.USER,
                 UserStatus.ACTIVE
         );
@@ -82,8 +83,7 @@ public class User {
     public void changeUsername(String newUsername) {
         requireNotDisabled();
 
-        if (newUsername.trim().equals(username)) return;
-        this.username = newUsername.trim();
+        this.username = UsernamePolicy.normalize(newUsername);
     }
 
     public void changePasswordHash(String newPasswordHash) {
@@ -94,7 +94,7 @@ public class User {
 
     public void unlock() {
         if (status != UserStatus.LOCKED)
-            throw new IllegalStateException("Only a locked user can be unlocked");
+            throw new UserCannotBeUnlockedException(status);
 
         this.status = UserStatus.ACTIVE;
     }
@@ -111,7 +111,7 @@ public class User {
 
     private void requireNotDisabled() {
         if (status == UserStatus.DISABLED)
-            throw new IllegalStateException("Disabled user cannot be modified");
+            throw new DisabledUserCannotBeModifiedException();
     }
 
     private static String requirePasswordHash(String passwordHash) {

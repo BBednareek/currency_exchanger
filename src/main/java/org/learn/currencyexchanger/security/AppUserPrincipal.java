@@ -33,7 +33,7 @@ public final class AppUserPrincipal implements UserDetails {
                 user.getId(),
                 user.getUsername(),
                 user.getPasswordHash(),
-                List.of(new SimpleGrantedAuthority("ROLE_ " + user.getUserRole().name())),
+                List.of(new SimpleGrantedAuthority("ROLE_" + user.getUserRole().name())),
                 user.getStatus()
         );
     }

@@ -1,4 +1,4 @@
-package org.learn.currencyexchanger.user.application;
+package org.learn.currencyexchanger.user.application.exception;
 
 public class UsernameAlreadyUsedException extends RuntimeException {
     public UsernameAlreadyUsedException() {
