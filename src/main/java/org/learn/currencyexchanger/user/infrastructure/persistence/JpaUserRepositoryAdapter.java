@@ -1,4 +1,4 @@
-package org.learn.currencyexchanger.user.infrastracture.persistence;
+package org.learn.currencyexchanger.user.infrastructure.persistence;
 
 import org.learn.currencyexchanger.user.domain.User;
 import org.learn.currencyexchanger.user.domain.UserRepository;
@@ -32,7 +32,7 @@ public class JpaUserRepositoryAdapter implements UserRepository {
 
     @Override
     public boolean existsByUsername(String username) {
-        return springDataUserRepository.exsistsByUsername(username);
+        return springDataUserRepository.existsByUsername(username);
     }
 
     @Override

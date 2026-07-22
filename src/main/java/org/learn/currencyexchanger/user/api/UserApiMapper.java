@@ -1,11 +1,9 @@
 package org.learn.currencyexchanger.user.api;
 
 import org.learn.currencyexchanger.user.application.UserSnapshot;
-import org.springframework.stereotype.Component;
 
 // Mapuje Encje na utworzone DTO dla bezpieczenstwa danych
 
-@Component
 public final class UserApiMapper {
 
     private UserApiMapper() {}

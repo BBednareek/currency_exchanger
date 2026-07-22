@@ -1,6 +1,9 @@
 package org.learn.currencyexchanger.user.application;
+import org.learn.currencyexchanger.user.application.exception.UserNotFoundException;
+import org.learn.currencyexchanger.user.application.exception.UsernameAlreadyUsedException;
 import org.learn.currencyexchanger.user.domain.User;
 import org.learn.currencyexchanger.user.domain.UserRepository;
+import org.learn.currencyexchanger.user.domain.UsernamePolicy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,14 +28,15 @@ public class UserService {
     @Transactional
     public UserSnapshot changeUsername(UUID userId, String newUsername) {
         User user = findUser(userId);
+        String normalizedUsername = UsernamePolicy.normalize(newUsername);
 
-        if (user.getUsername().equals(newUsername))
+        if (user.getUsername().equals(normalizedUsername))
             return UserSnapshot.from(user);
 
-        if (userRepository.existsByUsername(newUsername))
+        if (userRepository.existsByUsername(normalizedUsername))
             throw new UsernameAlreadyUsedException();
 
-        user.changeUsername(newUsername);
+        user.changeUsername(normalizedUsername);
 
         User savedUser = userRepository.save(user);
 
