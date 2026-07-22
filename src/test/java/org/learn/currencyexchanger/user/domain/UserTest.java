@@ -64,4 +64,14 @@ class UserTest {
         assertThrows(IllegalArgumentException.class, () -> User.register("john.doe", " "));
     }
 
+    @Test
+    void shouldRejectTooLongPasswordHash() {
+        String tooLongPasswordHash = "x".repeat(256);
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> User.register("john.doe", tooLongPasswordHash)
+        );
+    }
+
 }

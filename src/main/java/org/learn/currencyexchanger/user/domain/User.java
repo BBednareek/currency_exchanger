@@ -20,16 +20,15 @@ import java.util.UUID;
 @Table(name = "app_user")
 public class User {
 
+    private static final int MAX_PASSWORD_HASH_LENGTH = 255;
     @Id
     private UUID id;
-
     @Column(
             name = "password_hash",
             nullable = false,
             length = 255
     )
     private String passwordHash;
-
     @Column(
             name = "username",
             nullable = false,
@@ -37,7 +36,6 @@ public class User {
             length = 50
     )
     private String username;
-
     @Enumerated(EnumType.STRING)
     @Column(
             name = "role",
@@ -45,7 +43,6 @@ public class User {
             length = 15
     )
     private UserRole userRole;
-
     @Enumerated(EnumType.STRING)
     @Column(
             name = "status",
@@ -53,7 +50,6 @@ public class User {
             length = 15
     )
     private UserStatus status;
-
     @Version
     @Column(
             name = "version",
@@ -91,7 +87,13 @@ public class User {
         Objects.requireNonNull(passwordHash, "Password hash cannot be null");
 
         if (passwordHash.isBlank()) throw new IllegalArgumentException("Password hash cannot be blank");
-
+        if (passwordHash.length() > MAX_PASSWORD_HASH_LENGTH) {
+            throw new IllegalArgumentException(
+                    "Password hash cannot exceed "
+                            + MAX_PASSWORD_HASH_LENGTH
+                            + " characters"
+            );
+        }
         return passwordHash;
     }
 
