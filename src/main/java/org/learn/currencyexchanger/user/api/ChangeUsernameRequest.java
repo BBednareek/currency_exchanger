@@ -9,7 +9,7 @@ public record ChangeUsernameRequest(
         @Size(
                 min = UsernamePolicy.MIN_LENGTH,
                 max = UsernamePolicy.MAX_LENGTH,
-                message = "Username must containt between 3 and 50 characters"
+                message = "Username must contain between 3 and 50 characters"
         )
         String username
 ) {

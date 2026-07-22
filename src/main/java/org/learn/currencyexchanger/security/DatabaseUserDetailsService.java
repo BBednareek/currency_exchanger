@@ -1,9 +1,9 @@
 package org.learn.currencyexchanger.security;
 
 import org.jspecify.annotations.NullMarked;
-import org.learn.currencyexchanger.user.domain.exception.InvalidUsernameException;
 import org.learn.currencyexchanger.user.domain.UserRepository;
 import org.learn.currencyexchanger.user.domain.UsernamePolicy;
+import org.learn.currencyexchanger.user.domain.exception.InvalidUsernameException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -13,9 +13,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class DatabaseUserDetailsService implements UserDetailsService {
-    private final UserRepository userRepository;
-
     private static final String INVALID_CREDENTIALS = "Invalid credentials";
+    private final UserRepository userRepository;
 
     public DatabaseUserDetailsService(UserRepository userRepository) {
         this.userRepository = userRepository;

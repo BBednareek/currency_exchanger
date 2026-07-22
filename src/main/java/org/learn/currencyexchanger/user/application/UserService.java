@@ -1,4 +1,5 @@
 package org.learn.currencyexchanger.user.application;
+
 import org.learn.currencyexchanger.user.application.exception.UserNotFoundException;
 import org.learn.currencyexchanger.user.application.exception.UsernameAlreadyUsedException;
 import org.learn.currencyexchanger.user.domain.User;

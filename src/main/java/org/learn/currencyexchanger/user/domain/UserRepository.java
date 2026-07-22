@@ -8,9 +8,12 @@ import java.util.UUID;
 // Domena definiuje, czego potrzebuje od magazynu danych,
 // ale nie wie, czy implementacja jest postgres, jpa, czy test memory
 
-public interface UserRepository{
+public interface UserRepository {
     Optional<User> findById(UUID userId);
+
     Optional<User> findByUsername(String username);
+
     boolean existsByUsername(String username);
+
     User save(User user);
 }

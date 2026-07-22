@@ -4,7 +4,6 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.OptimisticLockException;
-import org.flywaydb.core.internal.database.base.TestContainersDatabaseType;
 import org.junit.jupiter.api.Test;
 import org.learn.currencyexchanger.TestcontainersConfiguration;
 import org.learn.currencyexchanger.user.domain.User;
@@ -13,13 +12,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
 @Import({
@@ -41,6 +43,20 @@ class JpaUserRepositoryAdapterTest {
     @Autowired
     private EntityManagerFactory entityManagerFactory;
 
+    private static boolean hasCause(
+            Throwable throwable,
+            Class<? extends Throwable> expectedType
+    ) {
+        Throwable current = throwable;
+
+        while (current != null) {
+            if (expectedType.isInstance(current))
+                return true;
+            current = current.getCause();
+        }
+        return false;
+    }
+
     @Test
     void shouldSaveAndFindUserById() {
         User savedUser = userRepository.save(
@@ -50,8 +66,8 @@ class JpaUserRepositoryAdapterTest {
                 )
         );
 
-    entityManager.flush();
-    entityManager.clear();
+        entityManager.flush();
+        entityManager.clear();
 
         Optional<User> result = userRepository.findById(savedUser.getId());
 
@@ -169,20 +185,6 @@ class JpaUserRepositoryAdapterTest {
 
             springDataUserRepository.deleteById(savedUser.getId());
         }
-    }
-
-    private static boolean hasCause(
-            Throwable throwable,
-            Class<? extends Throwable> expectedType
-    ) {
-        Throwable current = throwable;
-
-        while (current != null) {
-            if (expectedType.isInstance(current))
-                return true;
-        current = current.getCause();
-    }
-    return false;
     }
 
 }

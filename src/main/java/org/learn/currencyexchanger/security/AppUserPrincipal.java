@@ -1,4 +1,5 @@
 package org.learn.currencyexchanger.security;
+
 import org.jspecify.annotations.NullMarked;
 import org.learn.currencyexchanger.user.domain.User;
 import org.learn.currencyexchanger.user.domain.UserStatus;

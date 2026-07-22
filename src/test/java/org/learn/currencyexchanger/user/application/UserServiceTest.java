@@ -6,15 +6,18 @@ import org.learn.currencyexchanger.user.application.exception.UserNotFoundExcept
 import org.learn.currencyexchanger.user.application.exception.UsernameAlreadyUsedException;
 import org.learn.currencyexchanger.user.domain.User;
 import org.learn.currencyexchanger.user.domain.UserRepository;
+import org.learn.currencyexchanger.user.domain.UserStatus;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class UserServiceTest {
+    private static final String PASSWORD_HASH = "{bcrypt}password-hash";
     private InMemoryUserRepository userRepository;
     private UserService userService;
 
@@ -29,7 +32,7 @@ class UserServiceTest {
         User user = userRepository.save(
                 User.register(
                         "current.user",
-                        "{bcrypt}password-hash"
+                        PASSWORD_HASH
                 )
         );
 
@@ -46,14 +49,14 @@ class UserServiceTest {
         User user = userRepository.save(
                 User.register(
                         "current.user",
-                        "{bcrypt}password-hash"
+                        PASSWORD_HASH
                 )
         );
 
         userRepository.save(
                 User.register(
                         "existing.user",
-                        "{bcryp}password-hash"
+                        "{bcrypt}password-hash"
                 )
         );
 
@@ -67,6 +70,39 @@ class UserServiceTest {
     void shouldThrowWhenUserDoesNotExist() {
         UUID unknownUserId = UUID.randomUUID();
         assertThrows(UserNotFoundException.class, () -> userService.getUser(unknownUserId));
+    }
+
+    @Test
+    void shouldReturnCurrentUserWithoutChangingSameUsername() {
+        User user = userRepository.save(
+                User.register(
+                        "john.doe",
+                        PASSWORD_HASH
+                )
+        );
+
+        UserSnapshot result = userService.changeUsername(
+                user.getId(),
+                "   JOHN.DOE    "
+        );
+
+        assertEquals("john.doe", result.username());
+    }
+
+    @Test
+    void shouldDisableOwnAccount() {
+        User user = userRepository.save(
+                User.register(
+                        "john.doe",
+                        PASSWORD_HASH
+                )
+        );
+
+        userService.disableOwnAccount(user.getId());
+
+        User storedUser = userRepository.findById(user.getId()).orElseThrow();
+
+        assertEquals(UserStatus.DISABLED, storedUser.getStatus());
     }
 
     private static final class InMemoryUserRepository implements UserRepository {

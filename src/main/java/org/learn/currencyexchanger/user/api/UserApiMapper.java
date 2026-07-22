@@ -6,7 +6,8 @@ import org.learn.currencyexchanger.user.application.UserSnapshot;
 
 public final class UserApiMapper {
 
-    private UserApiMapper() {}
+    private UserApiMapper() {
+    }
 
     public static UserResponse toResponse(UserSnapshot snapshot) {
         return new UserResponse(

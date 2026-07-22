@@ -1,6 +1,12 @@
 package org.learn.currencyexchanger.user.domain;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import org.learn.currencyexchanger.user.domain.exception.DisabledUserCannotBeModifiedException;
 import org.learn.currencyexchanger.user.domain.exception.UserCannotBeUnlockedException;
 
@@ -55,13 +61,14 @@ public class User {
     )
     private long version;
 
-    protected User() {}
+    protected User() {
+    }
 
     private User(UUID id,
-                String passwordHash,
-                String username,
-                UserRole userRole,
-                UserStatus status
+                 String passwordHash,
+                 String username,
+                 UserRole userRole,
+                 UserStatus status
     ) {
         this.id = Objects.requireNonNull(id);
         this.passwordHash = requirePasswordHash(passwordHash);
@@ -78,6 +85,14 @@ public class User {
                 UserRole.USER,
                 UserStatus.ACTIVE
         );
+    }
+
+    private static String requirePasswordHash(String passwordHash) {
+        Objects.requireNonNull(passwordHash, "Password hash cannot be null");
+
+        if (passwordHash.isBlank()) throw new IllegalArgumentException("Password hash cannot be blank");
+
+        return passwordHash;
     }
 
     public void changeUsername(String newUsername) {
@@ -114,29 +129,26 @@ public class User {
             throw new DisabledUserCannotBeModifiedException();
     }
 
-    private static String requirePasswordHash(String passwordHash) {
-        Objects.requireNonNull(passwordHash, "Password hash cannot be null");
-
-        if (passwordHash.isBlank()) throw new IllegalArgumentException("Password hash cannot be blank");
-
-        return passwordHash;
-    }
-
     public UUID getId() {
         return id;
     }
+
     public String getUsername() {
         return username;
     }
+
     public String getPasswordHash() {
         return passwordHash;
     }
+
     public UserRole getUserRole() {
         return userRole;
     }
+
     public UserStatus getStatus() {
         return status;
     }
+
     public long getVersion() {
         return version;
     }

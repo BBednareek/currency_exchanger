@@ -29,40 +29,36 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 @RestControllerAdvice
-public final class ApiExceptionHandler
-        extends ResponseEntityExceptionHandler {
-
+public final class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     private static final Logger log =
             LoggerFactory.getLogger(ApiExceptionHandler.class);
 
-    private static final String USER_NOT_FOUND =
-            "USER_NOT_FOUND";
+    private static final String USER_NOT_FOUND = "USER_NOT_FOUND";
+    private static final String USERNAME_ALREADY_USED = "USERNAME_ALREADY_USED";
+    private static final String INVALID_USERNAME = "INVALID_USERNAME";
+    private static final String VALIDATION_FAILED = "VALIDATION_FAILED";
+    private static final String DATA_CONFLICT = "DATA_CONFLICT";
+    private static final String CONCURRENT_MODIFICATION = "CONCURRENT_MODIFICATION";
+    private static final String INTERNAL_ERROR = "INTERNAL_ERROR";
+    private static final String USER_STATE_CONFLICT = "USER_STATE_CONFLICT";
 
-    private static final String USERNAME_ALREADY_USED =
-            "USERNAME_ALREADY_USED";
+    private static ProblemDetail createProblem(
+            HttpStatus status,
+            String code,
+            String title,
+            String detail
+    ) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(status, detail);
 
-    private static final String INVALID_USERNAME =
-            "INVALID_USERNAME";
+        problem.setTitle(title);
+        problem.setType(URI.create("urn:problem:" + code.toLowerCase(Locale.ROOT).replace('_', '-')));
+        problem.setProperty("code", code);
 
-    private static final String USER_STATE_CONFLICT =
-            "USER_STATE_CONFLICT";
-
-    private static final String VALIDATION_FAILED =
-            "VALIDATION_FAILED";
-
-    private static final String DATA_CONFLICT =
-            "DATA_CONFLICT";
-
-    private static final String CONCURRENT_MODIFICATION =
-            "CONCURRENT_MODIFICATION";
-
-    private static final String INTERNAL_ERROR =
-            "INTERNAL_ERROR";
+        return problem;
+    }
 
     @ExceptionHandler(UserNotFoundException.class)
-    public ProblemDetail handleUserNotFound(
-            UserNotFoundException exception
-    ) {
+    public ProblemDetail handleUserNotFound(UserNotFoundException exception) {
         return createProblem(
                 HttpStatus.NOT_FOUND,
                 USER_NOT_FOUND,
@@ -72,9 +68,7 @@ public final class ApiExceptionHandler
     }
 
     @ExceptionHandler(UsernameAlreadyUsedException.class)
-    public ProblemDetail handleUsernameAlreadyUsed(
-            UsernameAlreadyUsedException exception
-    ) {
+    public ProblemDetail handleUsernameAlreadyUsed(UsernameAlreadyUsedException exception) {
         return createProblem(
                 HttpStatus.CONFLICT,
                 USERNAME_ALREADY_USED,
@@ -83,10 +77,12 @@ public final class ApiExceptionHandler
         );
     }
 
+    //Ochrona przez race condition
+    // Dwa zadajnia moga jednoczesnie przejsc existsByUsername()
+    // a dopiero ograncizenie unique w bazie rozstrzygnie konflikt
+
     @ExceptionHandler(InvalidUsernameException.class)
-    public ProblemDetail handleInvalidUsername(
-            InvalidUsernameException exception
-    ) {
+    public ProblemDetail handleInvalidUsername(InvalidUsernameException exception) {
         return createProblem(
                 HttpStatus.BAD_REQUEST,
                 INVALID_USERNAME,
@@ -95,29 +91,11 @@ public final class ApiExceptionHandler
         );
     }
 
-    @ExceptionHandler({
-            DisabledUserCannotBeModifiedException.class,
-            UserCannotBeUnlockedException.class
-    })
-    public ProblemDetail handleUserStateConflict(
-            RuntimeException exception
-    ) {
-        return createProblem(
-                HttpStatus.CONFLICT,
-                USER_STATE_CONFLICT,
-                "User state conflict",
-                exception.getMessage()
-        );
-    }
+    // Encja user korzysta z @Version dlatego rownolegla aktualizacja moze zakonczyc sie wyjatkiem optimistic lock
 
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ProblemDetail handleDataIntegrityViolation(
-            DataIntegrityViolationException exception
-    ) {
-        log.warn(
-                "Database integrity constraint was violated",
-                exception
-        );
+    public ProblemDetail handleDataIntegrityViolation(DataIntegrityViolationException exception) {
+        log.warn("Database integrity constraint was violated", exception);
 
         return createProblem(
                 HttpStatus.CONFLICT,
@@ -128,18 +106,16 @@ public final class ApiExceptionHandler
     }
 
     @ExceptionHandler(OptimisticLockingFailureException.class)
-    public ProblemDetail handleOptimisticLockingFailure(
-            OptimisticLockingFailureException exception
-    ) {
+    public ProblemDetail handleOptimisticLockingFailure(OptimisticLockingFailureException exception) {
         return createProblem(
                 HttpStatus.CONFLICT,
                 CONCURRENT_MODIFICATION,
                 "Concurrent modification",
-                "The resource was modified by another request. " +
-                        "Reload it and try again"
+                "The resource was modified by another request. Reload it and try again"
         );
     }
 
+    //Obsluga bledow bean validation
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(
             MethodArgumentNotValidException exception,
@@ -194,16 +170,8 @@ public final class ApiExceptionHandler
     }
 
     @ExceptionHandler(Exception.class)
-    public ProblemDetail handleUnexpectedException(
-            Exception exception,
-            HttpServletRequest request
-    ) {
-        log.error(
-                "Unexpected error while handling {} {}",
-                request.getMethod(),
-                request.getRequestURI(),
-                exception
-        );
+    public ProblemDetail handleUnexpectedException(Exception exception, HttpServletRequest request) {
+        log.error("Unexpected error while handling {} {}", request.getMethod(), request.getRequestURI(), exception);
 
         return createProblem(
                 HttpStatus.INTERNAL_SERVER_ERROR,
@@ -213,26 +181,17 @@ public final class ApiExceptionHandler
         );
     }
 
-    private static ProblemDetail createProblem(
-            HttpStatus status,
-            String code,
-            String title,
-            String detail
-    ) {
-        ProblemDetail problem =
-                ProblemDetail.forStatusAndDetail(status, detail);
-
-        String problemIdentifier = code
-                .toLowerCase(Locale.ROOT)
-                .replace('_', '-');
-
-        problem.setTitle(title);
-        problem.setType(
-                URI.create("urn:problem:" + problemIdentifier)
+    @ExceptionHandler({
+            DisabledUserCannotBeModifiedException.class,
+            UserCannotBeUnlockedException.class
+    })
+    public ProblemDetail handleUserStateConflict(RuntimeException exception) {
+        return createProblem(
+                HttpStatus.CONFLICT,
+                USER_STATE_CONFLICT,
+                "User state conflict",
+                exception.getMessage()
         );
-        problem.setProperty("code", code);
-
-        return problem;
     }
 
     public record ValidationViolation(

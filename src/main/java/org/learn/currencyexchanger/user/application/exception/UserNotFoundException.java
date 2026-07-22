@@ -1,4 +1,5 @@
 package org.learn.currencyexchanger.user.application.exception;
+
 import java.util.UUID;
 
 public class UserNotFoundException extends RuntimeException {
