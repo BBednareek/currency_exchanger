@@ -60,8 +60,30 @@ class SecurityConfigurationTest {
                 .andExpect(status().isNoContent());
     }
 
+    @Test
+    void shouldAllowAnonymousLoginWithCsrfToken() throws Exception {
+        mockMvc.perform(
+                        post("/api/auth/login")
+                                .with(csrf())
+                )
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void shouldRejectLoginWithoutCsrfToken() throws Exception {
+        mockMvc.perform(
+                        post("/api/auth/login")
+                )
+                .andExpect(status().isForbidden());
+    }
+
     @RestController
     public static class TestController {
+
+        @PostMapping("/api/auth/login")
+        ResponseEntity<Void> login() {
+            return ResponseEntity.noContent().build();
+        }
 
         @PostMapping("/api/auth/register")
         ResponseEntity<Void> register() {
