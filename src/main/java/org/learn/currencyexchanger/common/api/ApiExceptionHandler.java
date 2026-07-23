@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import javax.naming.AuthenticationException;
 import java.net.URI;
 import java.util.List;
 import java.util.Locale;
@@ -43,6 +44,7 @@ public final class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     private static final String INTERNAL_ERROR = "INTERNAL_ERROR";
     private static final String USER_STATE_CONFLICT = "USER_STATE_CONFLICT";
     private static final String INVALID_PASSWORD = "INVALID_PASSWORD";
+    private static final String AUTHENTICATION_FAILED = "AUTHENTICATION_FAILED";
 
     private static ProblemDetail createProblem(
             HttpStatus status,
@@ -205,6 +207,17 @@ public final class ApiExceptionHandler extends ResponseEntityExceptionHandler {
                 INVALID_PASSWORD,
                 "Invalid password",
                 exception.getMessage()
+        );
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ProblemDetail handleAuthenticationFailure(
+            AuthenticationException exception) {
+        return createProblem(
+                HttpStatus.UNAUTHORIZED,
+                AUTHENTICATION_FAILED,
+                "Authentication failed",
+                "Invalid username or password"
         );
     }
 

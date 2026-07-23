@@ -32,6 +32,10 @@ public class SecurityConfiguration {
                                         HttpMethod.GET,
                                         "/api/auth/csrf"
                                 ).permitAll()
+                                .requestMatchers(
+                                        HttpMethod.POST,
+                                        "/api/auth/login"
+                                ).permitAll()
                                 .anyRequest().authenticated()
                 )
                 .exceptionHandling(
