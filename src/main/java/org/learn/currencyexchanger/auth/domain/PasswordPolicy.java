@@ -1,8 +1,10 @@
-package org.learn.currencyexchanger.auth;
+package org.learn.currencyexchanger.auth.domain;
+
+import org.learn.currencyexchanger.auth.domain.exception.InvalidPasswordException;
 
 import java.nio.charset.StandardCharsets;
 
-public class PasswordPolicy {
+public final class PasswordPolicy {
     public static final int MIN_LENGTH = 12;
     public static final int MAX_BCRYPT_BYTES = 72;
 
@@ -16,11 +18,15 @@ public class PasswordPolicy {
             throw new InvalidPasswordException("Password cannot be null");
         }
 
+        if (rawPassword.isBlank()) {
+            throw new InvalidPasswordException("Password cannot be blank");
+        }
+
         int characterCount = rawPassword.codePointCount(0, rawPassword.length());
 
         if (characterCount < MIN_LENGTH) {
             throw new InvalidPasswordException(
-                    "Password must containt at least " + MIN_LENGTH + " characters"
+                    "Password must contain at least " + MIN_LENGTH + " characters"
             );
         }
 
