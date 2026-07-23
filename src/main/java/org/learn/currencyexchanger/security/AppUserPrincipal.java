@@ -3,6 +3,7 @@ package org.learn.currencyexchanger.security;
 import org.jspecify.annotations.NullMarked;
 import org.learn.currencyexchanger.user.domain.User;
 import org.learn.currencyexchanger.user.domain.UserStatus;
+import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,12 +15,13 @@ import java.util.UUID;
 // Kod zwiazany z logowaniem zawarty w security
 // UserDatailsService jest kontraktem spring security uzywanym do pobierania danych uzytkownika na potrzeby uwierzytelnienia
 
-public final class AppUserPrincipal implements UserDetails {
+public final class AppUserPrincipal implements
+        UserDetails, CredentialsContainer {
     private final UUID userId;
     private final String username;
-    private final String passwordHash;
     private final Collection<? extends GrantedAuthority> authorities;
     private final UserStatus status;
+    private String passwordHash;
 
     private AppUserPrincipal(UUID userId, String username, String passwordHash, Collection<? extends GrantedAuthority> authorities, UserStatus status) {
         this.userId = userId;
@@ -37,6 +39,11 @@ public final class AppUserPrincipal implements UserDetails {
                 List.of(new SimpleGrantedAuthority("ROLE_" + user.getUserRole().name())),
                 user.getStatus()
         );
+    }
+
+    @Override
+    public void eraseCredentials() {
+        passwordHash = null;
     }
 
     public UUID getUserId() {

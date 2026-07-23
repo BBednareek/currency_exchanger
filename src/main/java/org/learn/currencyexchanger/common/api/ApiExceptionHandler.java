@@ -2,6 +2,7 @@ package org.learn.currencyexchanger.common.api;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.jspecify.annotations.NonNull;
+import org.learn.currencyexchanger.auth.domain.exception.InvalidPasswordException;
 import org.learn.currencyexchanger.user.application.exception.UserNotFoundException;
 import org.learn.currencyexchanger.user.application.exception.UsernameAlreadyUsedException;
 import org.learn.currencyexchanger.user.domain.exception.DisabledUserCannotBeModifiedException;
@@ -41,6 +42,7 @@ public final class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     private static final String CONCURRENT_MODIFICATION = "CONCURRENT_MODIFICATION";
     private static final String INTERNAL_ERROR = "INTERNAL_ERROR";
     private static final String USER_STATE_CONFLICT = "USER_STATE_CONFLICT";
+    private static final String INVALID_PASSWORD = "INVALID_PASSWORD";
 
     private static ProblemDetail createProblem(
             HttpStatus status,
@@ -190,6 +192,18 @@ public final class ApiExceptionHandler extends ResponseEntityExceptionHandler {
                 HttpStatus.CONFLICT,
                 USER_STATE_CONFLICT,
                 "User state conflict",
+                exception.getMessage()
+        );
+    }
+
+    @ExceptionHandler(InvalidPasswordException.class)
+    public ProblemDetail handleInvalidPassword(
+            InvalidPasswordException exception
+    ) {
+        return createProblem(
+                HttpStatus.BAD_REQUEST,
+                INVALID_PASSWORD,
+                "Invalid password",
                 exception.getMessage()
         );
     }
