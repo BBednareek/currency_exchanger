@@ -7,13 +7,15 @@ import java.util.Locale;
 import java.util.regex.Pattern;
 
 public final class UsernamePolicy {
-    private static final Pattern ALLOWED = Pattern.compile("[a-z0-9._-]{3,50}");
 
     // 3-50 znakow dla username
     public static final int MIN_LENGTH = 3;
     public static final int MAX_LENGTH = 50;
 
-    private UsernamePolicy(){}
+    private static final Pattern ALLOWED_USERNAME_PATTERN = Pattern.compile("[a-z0-9._-]{" + MIN_LENGTH + "," + MAX_LENGTH + "}");
+
+    private UsernamePolicy() {
+    }
 
     public static String normalize(String rawUsername) {
         if (rawUsername == null)
@@ -24,8 +26,8 @@ public final class UsernamePolicy {
                 .strip()
                 .toLowerCase(Locale.ROOT);
 
-        if (!ALLOWED.matcher(normalizedUsername).matches())
-            throw new InvalidUsernameException("Username must containt 3-50 ASCII letters, digits, dots, " +
+        if (!ALLOWED_USERNAME_PATTERN.matcher(normalizedUsername).matches())
+            throw new InvalidUsernameException("Username must contain 3-50 ASCII letters, digits, dots, " +
                     "underscores or hyphens");
 
         return normalizedUsername;

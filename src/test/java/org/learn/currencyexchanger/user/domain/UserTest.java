@@ -4,28 +4,31 @@ import org.junit.jupiter.api.Test;
 import org.learn.currencyexchanger.user.domain.exception.DisabledUserCannotBeModifiedException;
 import org.learn.currencyexchanger.user.domain.exception.UserCannotBeUnlockedException;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class UserTest {
+
+    private static final String PASSWORD_HASH = "{bcrypt}password-hash";
 
     @Test
     void shouldRegisterActiveUserWithNormalizedUsername() {
         User user = User.register(
                 "   John.DOE    ",
-                "{bcrypt}password-hash"
+                PASSWORD_HASH
         );
 
         assertEquals("john.doe", user.getUsername());
         assertEquals(UserRole.USER, user.getUserRole());
         assertEquals(UserStatus.ACTIVE, user.getStatus());
-        assertEquals("{bcrypt}password-hash", user.getPasswordHash());
+        assertEquals(PASSWORD_HASH, user.getPasswordHash());
     }
 
     @Test
     void shouldNotModifyDisabledUser() {
         User user = User.register(
                 "john.doe",
-                "{bcrypt}password-hash"
+                PASSWORD_HASH
         );
 
         user.disable();
@@ -37,7 +40,7 @@ class UserTest {
     void shouldUnlockLockedUser() {
         User user = User.register(
                 "john.doe",
-                "{bcrypt}password-hash"
+                PASSWORD_HASH
         );
 
         user.lock();
@@ -50,7 +53,7 @@ class UserTest {
     void shouldNotUnlockActiveUser() {
         User user = User.register(
                 "john.doe",
-                "{bcrypt}password-hash"
+                PASSWORD_HASH
         );
 
         assertThrows(UserCannotBeUnlockedException.class, user::unlock);
@@ -59,6 +62,16 @@ class UserTest {
     @Test
     void shouldRejectBlankPasswordHash() {
         assertThrows(IllegalArgumentException.class, () -> User.register("john.doe", " "));
+    }
+
+    @Test
+    void shouldRejectTooLongPasswordHash() {
+        String tooLongPasswordHash = "x".repeat(256);
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> User.register("john.doe", tooLongPasswordHash)
+        );
     }
 
 }

@@ -1,6 +1,6 @@
 package org.learn.currencyexchanger.user.domain.exception;
 
-public class InvalidUsernameException extends RuntimeException {
+public final class InvalidUsernameException extends RuntimeException {
     public InvalidUsernameException(String message) {
         super(message);
     }

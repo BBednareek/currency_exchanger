@@ -68,10 +68,10 @@ class UserControllerTest {
         when(userService.getUser(userId)).thenReturn(snapshot);
 
         mockMvc.perform(
-                get("/api/users/me").
-                        with(user(principal))
-                        .accept(MediaType.APPLICATION_JSON)
-        )
+                        get("/api/users/me").
+                                with(user(principal))
+                                .accept(MediaType.APPLICATION_JSON)
+                )
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(userId.toString()))
@@ -87,10 +87,10 @@ class UserControllerTest {
         when(userService.getUser(userId)).thenThrow(new UserNotFoundException(userId));
 
         mockMvc.perform(
-                get("/api/users/me")
-                        .with(user(principal))
-                        .accept(MediaType.APPLICATION_JSON)
-        )
+                        get("/api/users/me")
+                                .with(user(principal))
+                                .accept(MediaType.APPLICATION_JSON)
+                )
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.code").value("USER_NOT_FOUND"))
@@ -108,17 +108,17 @@ class UserControllerTest {
         )).thenReturn(snapshot);
 
         mockMvc.perform(
-                patch("/api/users/me/username")
-                        .with(user(principal))
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                "username": "New.Username"
-                                }
-                                """)
-        )
+                        patch("/api/users/me/username")
+                                .with(user(principal))
+                                .with(csrf())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .accept(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                        "username": "New.Username"
+                                        }
+                                        """)
+                )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(userId.toString()))
                 .andExpect(jsonPath("$.username").
@@ -130,17 +130,17 @@ class UserControllerTest {
     @Test
     void shouldReturnValidationProblemForInvalidUsername() throws Exception {
         mockMvc.perform(
-                patch("/api/users/me/username")
-                        .with(user(principal))
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                "username": "ab"
-                                }
-                                """)
-        )
+                        patch("/api/users/me/username")
+                                .with(user(principal))
+                                .with(csrf())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .accept(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                        "username": "ab"
+                                        }
+                                        """)
+                )
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
@@ -151,23 +151,23 @@ class UserControllerTest {
     }
 
     @Test
-    void shouldReturnConfictWhenUsernameIsAlreadyUsed() throws Exception {
+    void shouldReturnConflictWhenUsernameIsAlreadyUsed() throws Exception {
         when(userService.changeUsername(
                 userId, "existing.user"
         )).thenThrow(new UsernameAlreadyUsedException());
 
         mockMvc.perform(
-                patch("/api/users/me/username")
-                        .with(user(principal))
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                "username": "existing.user"
-                                }
-                                """)
-        )
+                        patch("/api/users/me/username")
+                                .with(user(principal))
+                                .with(csrf())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .accept(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                        "username": "existing.user"
+                                        }
+                                        """)
+                )
                 .andExpect(status().isConflict())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.code").value("USERNAME_ALREADY_USED"))
@@ -177,15 +177,15 @@ class UserControllerTest {
     }
 
     @Test
-    void shouldDisableAccountAndLogutCurrentSession() throws Exception {
+    void shouldDisableAccountAndLogoutCurrentSession() throws Exception {
         doNothing().when(userService).disableOwnAccount(userId);
 
         mockMvc.perform(
-                delete("/api/users/me")
-                        .with(user(principal))
-                        .with(csrf())
+                        delete("/api/users/me")
+                                .with(user(principal))
+                                .with(csrf())
 
-        )
+                )
                 .andExpect(status().isNoContent())
                 .andExpect(content().string(""));
 
