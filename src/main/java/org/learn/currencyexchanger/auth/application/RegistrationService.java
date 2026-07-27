@@ -2,8 +2,8 @@ package org.learn.currencyexchanger.auth.application;
 
 import org.learn.currencyexchanger.auth.domain.PasswordPolicy;
 import org.learn.currencyexchanger.user.application.exception.UsernameAlreadyUsedException;
+import org.learn.currencyexchanger.user.application.port.UserRepository;
 import org.learn.currencyexchanger.user.domain.User;
-import org.learn.currencyexchanger.user.domain.UserRepository;
 import org.learn.currencyexchanger.user.domain.UsernamePolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -11,11 +11,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(readOnly = true)
-public class AuthService {
+public class RegistrationService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public RegistrationService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }

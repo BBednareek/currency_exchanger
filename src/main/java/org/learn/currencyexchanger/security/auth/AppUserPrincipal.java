@@ -1,6 +1,6 @@
-package org.learn.currencyexchanger.security;
+package org.learn.currencyexchanger.security.auth;
 
-import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.learn.currencyexchanger.user.domain.User;
 import org.learn.currencyexchanger.user.domain.UserStatus;
 import org.springframework.security.core.CredentialsContainer;
@@ -21,13 +21,13 @@ public final class AppUserPrincipal implements
     private final String username;
     private final Collection<? extends GrantedAuthority> authorities;
     private final UserStatus status;
-    private String passwordHash;
+    private @Nullable String passwordHash;
 
     private AppUserPrincipal(UUID userId, String username, String passwordHash, Collection<? extends GrantedAuthority> authorities, UserStatus status) {
         this.userId = userId;
         this.username = username;
         this.passwordHash = passwordHash;
-        this.authorities = authorities;
+        this.authorities = List.copyOf(authorities);
         this.status = status;
     }
 
@@ -50,26 +50,19 @@ public final class AppUserPrincipal implements
         return userId;
     }
 
-    @NullMarked
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return authorities;
     }
 
-    public String getPassword() {
+    @Override
+    public @Nullable String getPassword() {
         return passwordHash;
     }
 
-    @NullMarked
     @Override
     public String getUsername() {
         return username;
-    }
-
-    @NullMarked
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
     }
 
     @Override
@@ -77,14 +70,8 @@ public final class AppUserPrincipal implements
         return status != UserStatus.LOCKED;
     }
 
-    @NullMarked
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
     @Override
     public boolean isEnabled() {
-        return status == UserStatus.ACTIVE;
+        return status != UserStatus.DISABLED;
     }
 }

@@ -1,5 +1,7 @@
-package org.learn.currencyexchanger.user.domain;
+package org.learn.currencyexchanger.user.application.port;
 
+
+import org.learn.currencyexchanger.user.domain.User;
 
 import java.util.Optional;
 import java.util.UUID;

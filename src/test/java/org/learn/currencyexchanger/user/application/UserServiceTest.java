@@ -4,10 +4,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.learn.currencyexchanger.user.application.exception.UserNotFoundException;
 import org.learn.currencyexchanger.user.application.exception.UsernameAlreadyUsedException;
+import org.learn.currencyexchanger.user.application.port.UserRepository;
 import org.learn.currencyexchanger.user.domain.User;
-import org.learn.currencyexchanger.user.domain.UserRepository;
 import org.learn.currencyexchanger.user.domain.UserStatus;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -18,13 +21,22 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class UserServiceTest {
     private static final String PASSWORD_HASH = "{bcrypt}password-hash";
+    private static final Instant CURRENT_TIME =
+            Instant.parse("2026-07-27T10:15:30Z");
     private InMemoryUserRepository userRepository;
     private UserService userService;
 
     @BeforeEach
     void setUp() {
         userRepository = new InMemoryUserRepository();
-        userService = new UserService(userRepository);
+        Clock clock = Clock.fixed(
+                CURRENT_TIME,
+                ZoneOffset.UTC
+        );
+        userService = new UserService(
+                userRepository,
+                clock
+        );
     }
 
     @Test
@@ -103,6 +115,7 @@ class UserServiceTest {
         User storedUser = userRepository.findById(user.getId()).orElseThrow();
 
         assertEquals(UserStatus.DISABLED, storedUser.getStatus());
+        assertEquals(CURRENT_TIME, storedUser.getDisabledAt());
     }
 
     private static final class InMemoryUserRepository implements UserRepository {

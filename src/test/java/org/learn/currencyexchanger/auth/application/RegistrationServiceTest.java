@@ -4,8 +4,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.learn.currencyexchanger.auth.domain.exception.InvalidPasswordException;
 import org.learn.currencyexchanger.user.application.exception.UsernameAlreadyUsedException;
+import org.learn.currencyexchanger.user.application.port.UserRepository;
 import org.learn.currencyexchanger.user.domain.User;
-import org.learn.currencyexchanger.user.domain.UserRepository;
 import org.learn.currencyexchanger.user.domain.UserRole;
 import org.learn.currencyexchanger.user.domain.UserStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,20 +20,20 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-class AuthServiceTest {
+class RegistrationServiceTest {
 
     private static final String RAW_PASSWORD = "correct horse battery staple";
     private static final String ENCODED_PASSWORD = "{test}encoded-password";
 
     private InMemoryUserRepository userRepository;
     private RecordingPasswordEncoder passwordEncoder;
-    private AuthService authService;
+    private RegistrationService authService;
 
     @BeforeEach
     void setUp() {
         userRepository = new InMemoryUserRepository();
         passwordEncoder = new RecordingPasswordEncoder();
-        authService = new AuthService(userRepository, passwordEncoder);
+        authService = new RegistrationService(userRepository, passwordEncoder);
     }
 
     @Test

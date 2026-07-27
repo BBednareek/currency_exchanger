@@ -2,8 +2,8 @@ package org.learn.currencyexchanger.auth.api;
 
 
 import jakarta.validation.Valid;
-import org.learn.currencyexchanger.auth.application.AuthService;
 import org.learn.currencyexchanger.auth.application.RegistrationResult;
+import org.learn.currencyexchanger.auth.application.RegistrationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,10 +13,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/auth")
-public class AuthController {
-    private final AuthService authService;
+public class RegistrationController {
+    private final RegistrationService authService;
 
-    public AuthController(AuthService authService) {
+    public RegistrationController(RegistrationService authService) {
         this.authService = authService;
     }
 

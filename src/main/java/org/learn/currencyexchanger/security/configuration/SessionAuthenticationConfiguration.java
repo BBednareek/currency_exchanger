@@ -1,4 +1,4 @@
-package org.learn.currencyexchanger.security;
+package org.learn.currencyexchanger.security.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

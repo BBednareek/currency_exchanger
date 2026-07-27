@@ -2,8 +2,9 @@ package org.learn.currencyexchanger.user.api;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.learn.currencyexchanger.common.api.ApiExceptionHandler;
-import org.learn.currencyexchanger.security.AppUserPrincipal;
+import org.learn.currencyexchanger.common.api.problem.ApiExceptionHandler;
+import org.learn.currencyexchanger.common.api.problem.ApiProblemFactory;
+import org.learn.currencyexchanger.security.auth.AppUserPrincipal;
 import org.learn.currencyexchanger.user.application.UserService;
 import org.learn.currencyexchanger.user.application.UserSnapshot;
 import org.learn.currencyexchanger.user.application.exception.UserNotFoundException;
@@ -16,7 +17,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
+import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -37,7 +38,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(UserController.class)
-@Import(ApiExceptionHandler.class)
+@Import({
+        ApiExceptionHandler.class,
+        ApiProblemFactory.class
+})
 class UserControllerTest {
     private static final String PASSWORD_HASH = "{bcrypt}password-hash";
 
@@ -48,7 +52,7 @@ class UserControllerTest {
     private UserService userService;
 
     @MockitoBean
-    private SecurityContextLogoutHandler logoutHandler;
+    private LogoutHandler logoutHandler;
 
     private AppUserPrincipal principal;
     private UUID userId;

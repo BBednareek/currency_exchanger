@@ -5,8 +5,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.learn.currencyexchanger.common.api.ApiExceptionHandler;
-import org.learn.currencyexchanger.security.AppUserPrincipal;
+import org.learn.currencyexchanger.common.api.problem.ApiExceptionHandler;
+import org.learn.currencyexchanger.common.api.problem.ApiProblemFactory;
+import org.learn.currencyexchanger.security.auth.AppUserPrincipal;
 import org.learn.currencyexchanger.user.domain.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -41,7 +42,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(LoginController.class)
 @AutoConfigureMockMvc(addFilters = false)
-@Import(ApiExceptionHandler.class)
+@Import({
+        ApiExceptionHandler.class,
+        ApiProblemFactory.class
+})
 class LoginControllerTest {
 
     private static final String USERNAME = "john.doe";

@@ -1,7 +1,6 @@
-package org.learn.currencyexchanger.security;
+package org.learn.currencyexchanger.security.auth;
 
-import org.jspecify.annotations.NullMarked;
-import org.learn.currencyexchanger.user.domain.UserRepository;
+import org.learn.currencyexchanger.user.application.port.UserRepository;
 import org.learn.currencyexchanger.user.domain.UsernamePolicy;
 import org.learn.currencyexchanger.user.domain.exception.InvalidUsernameException;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,7 +19,6 @@ public class DatabaseUserDetailsService implements UserDetailsService {
         this.userRepository = userRepository;
     }
 
-    @NullMarked
     @Override
     public UserDetails loadUserByUsername(String username) {
         try {

@@ -2,16 +2,11 @@ package org.learn.currencyexchanger.auth.api;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-import org.learn.currencyexchanger.user.domain.UsernamePolicy;
+import org.learn.currencyexchanger.user.api.validation.ValidUsername;
 
 public record RegisterRequest(
         @NotBlank(message = "Username is required")
-        @Size(
-                min = UsernamePolicy.MIN_LENGTH,
-                max = UsernamePolicy.MAX_LENGTH,
-                message = "Username must contain between 3 and 50 characters"
-        )
+        @ValidUsername
         String username,
 
         //nie dodano @Size ze wzgledu na to, ze polityyka uwzgledniajaca unicode i bajty utf-8 liczy znaki inaczej

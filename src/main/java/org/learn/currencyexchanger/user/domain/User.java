@@ -9,7 +9,12 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import org.learn.currencyexchanger.user.domain.exception.DisabledUserCannotBeModifiedException;
 import org.learn.currencyexchanger.user.domain.exception.UserCannotBeUnlockedException;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.SourceType;
+import org.hibernate.annotations.UpdateTimestamp;
+import org.jspecify.annotations.Nullable;
 
+import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -56,6 +61,21 @@ public class User {
             nullable = false
     )
     private long version;
+    @CreationTimestamp(source = SourceType.DB)
+    @Column(
+            name = "created_at",
+            nullable = false,
+            updatable = false
+    )
+    private @Nullable Instant createdAt;
+    @UpdateTimestamp(source = SourceType.DB)
+    @Column(
+            name = "updated_at",
+            nullable = false
+    )
+    private @Nullable Instant updatedAt;
+    @Column(name = "disabled_at")
+    private @Nullable Instant disabledAt;
 
     protected User() {
     }
@@ -122,8 +142,18 @@ public class User {
         this.status = UserStatus.LOCKED;
     }
 
-    public void disable() {
+    public void disable(Instant disabledAt) {
+        Objects.requireNonNull(
+                disabledAt,
+                "Disabled timestamp cannot be null"
+        );
+
+        if (status == UserStatus.DISABLED) {
+            return;
+        }
+
         this.status = UserStatus.DISABLED;
+        this.disabledAt = disabledAt;
     }
 
     private void requireNotDisabled() {
@@ -153,5 +183,17 @@ public class User {
 
     public long getVersion() {
         return version;
+    }
+
+    public @Nullable Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public @Nullable Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public @Nullable Instant getDisabledAt() {
+        return disabledAt;
     }
 }

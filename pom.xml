@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>org.learn</groupId>
-    <artifactId>CurrencyExchanger</artifactId>
+    <artifactId>currency-exchanger</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>CurrencyExchanger</name>
     <description>CurrencyExchanger</description>

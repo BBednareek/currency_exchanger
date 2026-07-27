@@ -2,12 +2,13 @@ package org.learn.currencyexchanger.user.application;
 
 import org.learn.currencyexchanger.user.application.exception.UserNotFoundException;
 import org.learn.currencyexchanger.user.application.exception.UsernameAlreadyUsedException;
+import org.learn.currencyexchanger.user.application.port.UserRepository;
 import org.learn.currencyexchanger.user.domain.User;
-import org.learn.currencyexchanger.user.domain.UserRepository;
 import org.learn.currencyexchanger.user.domain.UsernamePolicy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.util.UUID;
 
 // Serwis powinien zawierac operacje dotyczace uzytkownika
@@ -17,9 +18,14 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class UserService {
     private final UserRepository userRepository;
+    private final Clock clock;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(
+            UserRepository userRepository,
+            Clock clock
+    ) {
         this.userRepository = userRepository;
+        this.clock = clock;
     }
 
     public UserSnapshot getUser(UUID userId) {
@@ -48,7 +54,7 @@ public class UserService {
     public void disableOwnAccount(UUID userId) {
         User user = findUser(userId);
 
-        user.disable();
+        user.disable(clock.instant());
         userRepository.save(user);
     }
 

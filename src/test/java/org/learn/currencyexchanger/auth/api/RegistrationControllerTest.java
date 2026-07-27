@@ -1,10 +1,11 @@
 package org.learn.currencyexchanger.auth.api;
 
 import org.junit.jupiter.api.Test;
-import org.learn.currencyexchanger.auth.application.AuthService;
 import org.learn.currencyexchanger.auth.application.RegistrationResult;
+import org.learn.currencyexchanger.auth.application.RegistrationService;
 import org.learn.currencyexchanger.auth.domain.exception.InvalidPasswordException;
-import org.learn.currencyexchanger.common.api.ApiExceptionHandler;
+import org.learn.currencyexchanger.common.api.problem.ApiExceptionHandler;
+import org.learn.currencyexchanger.common.api.problem.ApiProblemFactory;
 import org.learn.currencyexchanger.user.application.exception.UsernameAlreadyUsedException;
 import org.learn.currencyexchanger.user.domain.UserRole;
 import org.learn.currencyexchanger.user.domain.UserStatus;
@@ -26,10 +27,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(AuthController.class)
+@WebMvcTest(RegistrationController.class)
 @AutoConfigureMockMvc(addFilters = false)
-@Import(ApiExceptionHandler.class)
-class AuthControllerTest {
+@Import({
+        ApiExceptionHandler.class,
+        ApiProblemFactory.class
+})
+class RegistrationControllerTest {
 
     private static final String USERNAME = "john.doe";
     private static final String PASSWORD = "correct horse battery staple";
@@ -38,7 +42,7 @@ class AuthControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private AuthService authService;
+    private RegistrationService authService;
 
     @Test
     void shouldRegisterUser() throws Exception {
