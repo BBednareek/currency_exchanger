@@ -1,0 +1,38 @@
+package org.learn.currencyexchanger.security.auth;
+
+import org.learn.currencyexchanger.user.application.port.UserRepository;
+import org.learn.currencyexchanger.user.domain.UsernamePolicy;
+import org.learn.currencyexchanger.user.domain.exception.InvalidUsernameException;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+
+// Do sesji trafia AppUserPrincipal, a nie encja JPA.
+
+@Service
+public class DatabaseUserDetailsService implements UserDetailsService {
+    private static final String INVALID_CREDENTIALS = "Invalid credentials";
+    private final UserRepository userRepository;
+
+    public DatabaseUserDetailsService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) {
+        try {
+            String normalizedUsername = UsernamePolicy.normalize(username);
+
+            return userRepository.findByUsername(normalizedUsername)
+                    .map(AppUserPrincipal::from)
+                    .orElseThrow(this::invalidCredentials);
+        } catch (InvalidUsernameException exception) {
+            throw invalidCredentials();
+        }
+    }
+
+    private UsernameNotFoundException invalidCredentials() {
+        return new UsernameNotFoundException(INVALID_CREDENTIALS);
+    }
+}

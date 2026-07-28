@@ -1,16 +1,11 @@
 package org.learn.currencyexchanger.user.api;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-import org.learn.currencyexchanger.user.domain.UsernamePolicy;
+import org.learn.currencyexchanger.user.api.validation.ValidUsername;
 
 public record ChangeUsernameRequest(
         @NotBlank
-        @Size(
-                min = UsernamePolicy.MIN_LENGTH,
-                max = UsernamePolicy.MAX_LENGTH,
-                message = "Username must contain between 3 and 50 characters"
-        )
+        @ValidUsername
         String username
 ) {
 }

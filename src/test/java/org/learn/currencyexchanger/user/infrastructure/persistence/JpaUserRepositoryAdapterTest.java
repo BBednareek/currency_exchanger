@@ -3,22 +3,28 @@ package org.learn.currencyexchanger.user.infrastructure.persistence;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
-import jakarta.persistence.OptimisticLockException;
+import jakarta.persistence.RollbackException;
 import org.junit.jupiter.api.Test;
 import org.learn.currencyexchanger.TestcontainersConfiguration;
+import org.learn.currencyexchanger.user.application.exception.UsernameAlreadyUsedException;
+import org.learn.currencyexchanger.user.application.port.UserRepository;
 import org.learn.currencyexchanger.user.domain.User;
-import org.learn.currencyexchanger.user.domain.UserRepository;
+import org.learn.currencyexchanger.user.domain.UserStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -43,19 +49,8 @@ class JpaUserRepositoryAdapterTest {
     @Autowired
     private EntityManagerFactory entityManagerFactory;
 
-    private static boolean hasCause(
-            Throwable throwable,
-            Class<? extends Throwable> expectedType
-    ) {
-        Throwable current = throwable;
-
-        while (current != null) {
-            if (expectedType.isInstance(current))
-                return true;
-            current = current.getCause();
-        }
-        return false;
-    }
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @Test
     void shouldSaveAndFindUserById() {
@@ -110,7 +105,76 @@ class JpaUserRepositoryAdapterTest {
     }
 
     @Test
-    void shouldEnforceUniqueUsernameInDatabase() {
+    void shouldPersistAccountDisableTimestamp() {
+        Instant disabledAt =
+                Instant.parse("2026-07-27T10:15:30Z");
+        User user = User.register(
+                "disabled.user",
+                PASSWORD_HASH
+        );
+        user.disable(disabledAt);
+
+        User savedUser =
+                springDataUserRepository.saveAndFlush(user);
+
+        entityManager.clear();
+
+        User reloadedUser = springDataUserRepository
+                .findById(savedUser.getId())
+                .orElseThrow();
+
+        assertEquals(
+                UserStatus.DISABLED,
+                reloadedUser.getStatus()
+        );
+        assertEquals(
+                disabledAt,
+                reloadedUser.getDisabledAt()
+        );
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    void shouldGenerateAndUpdateAuditTimestamps() {
+        User savedUser =
+                springDataUserRepository.saveAndFlush(
+                        User.register(
+                                "audited.user",
+                                PASSWORD_HASH
+                        )
+                );
+
+        Instant createdAt = savedUser.getCreatedAt();
+        Instant initialUpdatedAt = savedUser.getUpdatedAt();
+
+        assertNotNull(createdAt);
+        assertNotNull(initialUpdatedAt);
+        assertFalse(initialUpdatedAt.isBefore(createdAt));
+
+        User userToUpdate = springDataUserRepository
+                .findById(savedUser.getId())
+                .orElseThrow();
+
+        userToUpdate.changeUsername("audited.user.changed");
+
+        User updatedUser =
+                springDataUserRepository.saveAndFlush(
+                        userToUpdate
+                );
+
+        assertEquals(
+                createdAt,
+                updatedUser.getCreatedAt()
+        );
+        assertNotNull(updatedUser.getUpdatedAt());
+        assertTrue(
+                updatedUser.getUpdatedAt()
+                        .isAfter(initialUpdatedAt)
+        );
+    }
+
+    @Test
+    void shouldTranslateUsernameUniqueConstraint() {
         springDataUserRepository.saveAndFlush(
                 User.register(
                         "john.doe",
@@ -119,13 +183,45 @@ class JpaUserRepositoryAdapterTest {
         );
 
         User duplicate = User.register(
-                "   JOHN.DOE    ",
+                "   JOHN.DOE   ",
                 PASSWORD_HASH
         );
 
+        UsernameAlreadyUsedException exception =
+                assertThrows(
+                        UsernameAlreadyUsedException.class,
+                        () -> userRepository.save(duplicate)
+                );
+
+        assertInstanceOf(
+                DataIntegrityViolationException.class,
+                exception.getCause()
+        );
+    }
+
+    @Test
+    void shouldEnforceNormalizedUsernameFormatInDatabase() {
         assertThrows(
                 DataIntegrityViolationException.class,
-                () -> springDataUserRepository.saveAndFlush(duplicate)
+                () -> jdbcTemplate.update(
+                        """
+                                INSERT INTO app_user (
+                                    id,
+                                    username,
+                                    password_hash,
+                                    role,
+                                    status,
+                                    version
+                                )
+                                VALUES (?, ?, ?, ?, ?, ?)
+                                """,
+                        UUID.randomUUID(),
+                        "Invalid Username",
+                        PASSWORD_HASH,
+                        "USER",
+                        "ACTIVE",
+                        0L
+                )
         );
     }
 
@@ -167,15 +263,24 @@ class JpaUserRepositoryAdapterTest {
 
             secondCopy.changeUsername("second.update");
 
-            RuntimeException exception = assertThrows(
-                    RuntimeException.class,
+            assertThrows(
+                    RollbackException.class,
                     secondTransaction::commit
             );
 
-            assertTrue(
-                    hasCause(exception, OptimisticLockException.class),
-                    "Expected OptimisticLockException in the cause chain"
-            );
+            try (EntityManager verificationEntityManager = entityManagerFactory.createEntityManager()) {
+                User persistedUser =
+                        verificationEntityManager.find(
+                                User.class,
+                                savedUser.getId()
+                        );
+
+                assertNotNull(persistedUser);
+                assertEquals(
+                        "first.update",
+                        persistedUser.getUsername()
+                );
+            }
         } finally {
             if (firstTransaction.isActive()) firstTransaction.rollback();
             if (secondTransaction.isActive()) secondTransaction.rollback();
