@@ -1,8 +1,11 @@
 package org.learn.currencyexchanger.rate.configuration;
 
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
 import java.time.Duration;
 import java.util.Objects;
 
+@ConfigurationProperties(prefix = "reference-rate.cache")
 public record ReferenceRateCacheProperties(
         Duration timeToLive,
         Duration maximumFallbackAge
