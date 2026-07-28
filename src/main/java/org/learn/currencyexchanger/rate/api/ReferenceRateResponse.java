@@ -9,6 +9,7 @@ public record ReferenceRateResponse(
         String quote,
         BigDecimal rate,
         LocalDate effectiveDate,
-        Instant fetchedAt
+        Instant fetchedAt,
+        boolean stale
 ) {
 }

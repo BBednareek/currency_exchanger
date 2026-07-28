@@ -48,7 +48,8 @@ class ReferenceRateControllerTest {
                         new CurrencyCode("PLN"),
                         new BigDecimal("3.672100"),
                         LocalDate.of(2026, 7, 27),
-                        Instant.parse("2026-07-28T10:15:30Z")
+                        Instant.parse("2026-07-28T10:15:30Z"),
+                        false
                 );
 
         when(referenceRateService.getLatestRate(
@@ -71,7 +72,49 @@ class ReferenceRateControllerTest {
                 .andExpect(jsonPath("$.effectiveDate")
                         .value("2026-07-27"))
                 .andExpect(jsonPath("$.fetchedAt")
-                        .value("2026-07-28T10:15:30Z"));
+                        .value("2026-07-28T10:15:30Z"))
+                .andExpect(jsonPath("$.stale").value(false)
+                );
+
+        verify(referenceRateService).getLatestRate(
+                "USD",
+                "PLN"
+        );
+    }
+
+    @Test
+    void shouldMarkFallbackRateAsStale() throws Exception {
+        ReferenceRateSnapshot snapshot =
+                new ReferenceRateSnapshot(
+                        new CurrencyCode("USD"),
+                        new CurrencyCode("PLN"),
+                        new BigDecimal("3.640000"),
+                        LocalDate.of(2026, 7, 27),
+                        Instant.parse(
+                                "2026-07-28T10:00:00Z"
+                        ),
+                        true
+                );
+
+        when(referenceRateService.getLatestRate(
+                "USD",
+                "PLN"
+        )).thenReturn(snapshot);
+
+        mockMvc.perform(
+                        get("/api/rates/USD/PLN")
+                                .with(user("john.doe"))
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.base")
+                        .value("USD"))
+                .andExpect(jsonPath("$.quote")
+                        .value("PLN"))
+                .andExpect(jsonPath("$.stale")
+                        .value(true))
+                .andExpect(jsonPath("$.fetchedAt")
+                        .value("2026-07-28T10:00:00Z"));
 
         verify(referenceRateService).getLatestRate(
                 "USD",

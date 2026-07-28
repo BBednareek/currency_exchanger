@@ -1,6 +1,7 @@
 package org.learn.currencyexchanger.rate.configuration;
 
 import org.learn.currencyexchanger.rate.application.ReferenceRateCachePolicy;
+import org.learn.currencyexchanger.rate.application.ReferenceRateRefreshCoordinator;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,5 +18,10 @@ public class ReferenceRateCacheConfiguration {
                 referenceRateCacheProperties.timeToLive(),
                 referenceRateCacheProperties.maximumFallbackAge()
         );
+    }
+
+    @Bean
+    public ReferenceRateRefreshCoordinator referenceRateRefreshCoordinator() {
+        return new ReferenceRateRefreshCoordinator();
     }
 }

@@ -16,7 +16,8 @@ public class ReferenceRateApiMapper {
                 snapshot.quote().value(),
                 snapshot.rate(),
                 snapshot.effectiveDate(),
-                snapshot.fetchedAt()
+                snapshot.fetchedAt(),
+                snapshot.stale()
         );
     }
 }
