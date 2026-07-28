@@ -1,6 +1,7 @@
 package org.learn.currencyexchanger.rate.application;
 
 import org.learn.currencyexchanger.rate.domain.CurrencyCode;
+import org.learn.currencyexchanger.rate.domain.CurrencyPair;
 import org.learn.currencyexchanger.rate.domain.ReferenceRate;
 
 import java.math.BigDecimal;
@@ -71,6 +72,15 @@ public record ReferenceRateSnapshot(
                 referenceRate.effectiveDate(),
                 referenceRate.fetchedAt(),
                 stale
+        );
+    }
+
+    ReferenceRate asReferenceRate() {
+        return new ReferenceRate(
+                new CurrencyPair(base, quote),
+                rate,
+                effectiveDate,
+                fetchedAt
         );
     }
 }
