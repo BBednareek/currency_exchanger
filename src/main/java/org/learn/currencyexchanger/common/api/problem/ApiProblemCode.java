@@ -108,6 +108,43 @@ public enum ApiProblemCode {
             "User state conflict",
             "The requested operation is not allowed for the current user state"
     ),
+
+    INVALID_CURRENCY_CODE(
+            "invalid-currency-code",
+            HttpStatus.BAD_REQUEST,
+            "Invalid currency code",
+            "Currency code must contain exactly three ASCII letters"
+    ),
+    INVALID_CURRENCY_PAIR(
+            "invalid-currency-pair",
+            HttpStatus.BAD_REQUEST,
+            "Invalid currency pair",
+            "Base and quote currencies must be different"
+    ),
+    UNSUPPORTED_CURRENCY(
+            "unsupported-currency",
+            HttpStatus.UNPROCESSABLE_CONTENT,
+            "Unsupported currency",
+            "The requested currency pair is not supported"
+    ),
+    REFERENCE_RATE_NOT_FOUND(
+            "reference-rate-not-found",
+            HttpStatus.NOT_FOUND,
+            "Reference rate not found",
+            "A reference rate was not found for the requested currency pair"
+    ),
+    INVALID_RATE_PROVIDER_RESPONSE(
+            "invalid-rate-provider-response",
+            HttpStatus.BAD_GATEWAY,
+            "Invalid provider response",
+            "The reference rate provider returned an invalid response"
+    ),
+    RATE_PROVIDER_UNAVAILABLE(
+            "rate-provider-unavailable",
+            HttpStatus.SERVICE_UNAVAILABLE,
+            "Rate provider unavailable",
+            "The reference rate provider is temporarily unavailable"
+    ),
     INTERNAL_ERROR(
             "internal-error",
             HttpStatus.INTERNAL_SERVER_ERROR,
