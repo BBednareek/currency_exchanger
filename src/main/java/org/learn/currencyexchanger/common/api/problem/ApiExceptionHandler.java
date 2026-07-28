@@ -9,6 +9,7 @@ import org.learn.currencyexchanger.rate.application.exception.ReferenceRateNotFo
 import org.learn.currencyexchanger.rate.application.exception.UnsupportedCurrencyException;
 import org.learn.currencyexchanger.rate.domain.exception.InvalidCurrencyCodeException;
 import org.learn.currencyexchanger.rate.domain.exception.InvalidCurrencyPairException;
+import org.learn.currencyexchanger.rate.domain.exception.InvalidMoneyAmountException;
 import org.learn.currencyexchanger.user.application.exception.UserNotFoundException;
 import org.learn.currencyexchanger.user.application.exception.UsernameAlreadyUsedException;
 import org.learn.currencyexchanger.user.domain.exception.DisabledUserCannotBeModifiedException;
@@ -579,6 +580,18 @@ public final class ApiExceptionHandler
 
         return problem(
                 ApiProblemCode.INVALID_RATE_PROVIDER_RESPONSE,
+                request
+        );
+    }
+
+    @ExceptionHandler(InvalidMoneyAmountException.class)
+    public ProblemDetail handleInvalidMoneyAmount(
+            InvalidMoneyAmountException exception,
+            HttpServletRequest request
+    ) {
+        return problem(
+                ApiProblemCode.INVALID_MONEY_AMOUNT,
+                exception.getMessage(),
                 request
         );
     }

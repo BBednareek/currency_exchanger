@@ -15,6 +15,7 @@ import org.learn.currencyexchanger.rate.application.exception.UnsupportedCurrenc
 import org.learn.currencyexchanger.rate.domain.CurrencyPair;
 import org.learn.currencyexchanger.rate.domain.exception.InvalidCurrencyCodeException;
 import org.learn.currencyexchanger.rate.domain.exception.InvalidCurrencyPairException;
+import org.learn.currencyexchanger.rate.domain.exception.InvalidMoneyAmountException;
 import org.learn.currencyexchanger.user.application.exception.UserNotFoundException;
 import org.learn.currencyexchanger.user.application.exception.UsernameAlreadyUsedException;
 import org.learn.currencyexchanger.user.domain.UserStatus;
@@ -77,6 +78,11 @@ class ApiExceptionHandlerTest {
 
     private static Stream<Arguments> mappedProblems() {
         return Stream.of(
+                Arguments.of(
+                        "invalid-money-amount",
+                        ApiProblemCode.INVALID_MONEY_AMOUNT,
+                        "Money amount must be greater than zero"
+                ),
                 Arguments.of(
                         "user-not-found",
                         ApiProblemCode.USER_NOT_FOUND,
@@ -421,6 +427,7 @@ class ApiExceptionHandlerTest {
                 case "authentication-failed" -> new BadCredentialsException(
                         "User john.doe does not exist"
                 );
+                case "invalid-money-amount" -> new InvalidMoneyAmountException();
                 case "unexpected" -> new IllegalStateException(
                         "Sensitive implementation details"
                 );

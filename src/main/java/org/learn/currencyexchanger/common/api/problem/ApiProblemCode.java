@@ -54,6 +54,12 @@ public enum ApiProblemCode {
             "Authentication required",
             "Authentication is required to access this resource"
     ),
+    INVALID_MONEY_AMOUNT(
+            "invalid-money-amount",
+            HttpStatus.BAD_REQUEST,
+            "Invalid money amount",
+            "Money amount must be greater than zero"
+    ),
     AUTHENTICATION_FAILED(
             "authentication-failed",
             HttpStatus.UNAUTHORIZED,
