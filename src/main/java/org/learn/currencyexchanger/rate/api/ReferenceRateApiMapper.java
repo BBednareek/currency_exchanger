@@ -2,7 +2,7 @@ package org.learn.currencyexchanger.rate.api;
 
 import org.learn.currencyexchanger.rate.application.ReferenceRateSnapshot;
 
-public class ReferenceRateApiMapper {
+public final class ReferenceRateApiMapper {
 
     private ReferenceRateApiMapper() {
 

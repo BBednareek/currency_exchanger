@@ -42,27 +42,25 @@ class CurrencyConversionServiceTest {
             );
 
     @Mock
-    private ReferenceRateService referenceRateService;
+    private ReferenceRateResolver referenceRateResolver;
 
     private CurrencyConversionService service;
 
     @BeforeEach
     void setUp() {
         service = new CurrencyConversionService(
-                referenceRateService
+                referenceRateResolver
         );
     }
 
     @Test
     void shouldConvertAmountUsingReferenceRate() {
-        when(referenceRateService.getLatestRate(
-                "USD",
-                "PLN"
-        )).thenReturn(
-                ReferenceRateSnapshot.fresh(
-                        REFERENCE_RATE
-                )
-        );
+        when(referenceRateResolver.resolve(PAIR))
+                .thenReturn(
+                        ResolvedReferenceRate.fresh(
+                                REFERENCE_RATE
+                        )
+                );
 
         ConversionSnapshot result = service.convert(
                 " usd ",
@@ -111,22 +109,17 @@ class CurrencyConversionServiceTest {
 
         assertFalse(result.stale());
 
-        verify(referenceRateService).getLatestRate(
-                "USD",
-                "PLN"
-        );
+        verify(referenceRateResolver).resolve(PAIR);
     }
 
     @Test
     void shouldPropagateStaleInformation() {
-        when(referenceRateService.getLatestRate(
-                "USD",
-                "PLN"
-        )).thenReturn(
-                ReferenceRateSnapshot.stale(
-                        REFERENCE_RATE
-                )
-        );
+        when(referenceRateResolver.resolve(PAIR))
+                .thenReturn(
+                        ResolvedReferenceRate.stale(
+                                REFERENCE_RATE
+                        )
+                );
 
         ConversionSnapshot result = service.convert(
                 "USD",
@@ -136,10 +129,7 @@ class CurrencyConversionServiceTest {
 
         assertTrue(result.stale());
 
-        verify(referenceRateService).getLatestRate(
-                "USD",
-                "PLN"
-        );
+        verify(referenceRateResolver).resolve(PAIR);
     }
 
     @Test
@@ -153,7 +143,7 @@ class CurrencyConversionServiceTest {
                 )
         );
 
-        verifyNoInteractions(referenceRateService);
+        verifyNoInteractions(referenceRateResolver);
     }
 
     @Test
@@ -167,7 +157,7 @@ class CurrencyConversionServiceTest {
                 )
         );
 
-        verifyNoInteractions(referenceRateService);
+        verifyNoInteractions(referenceRateResolver);
     }
 
     @Test
@@ -181,7 +171,7 @@ class CurrencyConversionServiceTest {
                 )
         );
 
-        verifyNoInteractions(referenceRateService);
+        verifyNoInteractions(referenceRateResolver);
     }
 
     @Test
@@ -196,14 +186,12 @@ class CurrencyConversionServiceTest {
                         )
                 );
 
-        when(referenceRateService.getLatestRate(
-                "USD",
-                "PLN"
-        )).thenReturn(
-                ReferenceRateSnapshot.fresh(
-                        inconsistentRate
-                )
-        );
+        when(referenceRateResolver.resolve(PAIR))
+                .thenReturn(
+                        ResolvedReferenceRate.fresh(
+                                inconsistentRate
+                        )
+                );
 
         assertThrows(
                 SourceCurrencyMismatchException.class,
@@ -214,9 +202,6 @@ class CurrencyConversionServiceTest {
                 )
         );
 
-        verify(referenceRateService).getLatestRate(
-                "USD",
-                "PLN"
-        );
+        verify(referenceRateResolver).resolve(PAIR);
     }
 }

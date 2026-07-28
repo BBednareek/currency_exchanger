@@ -9,7 +9,7 @@ public record ConversionQuote(
         Money source,
         ReferenceRate referenceRate
 ) {
-    private static final MathContext CALCULACTION_CONTEXT =
+    private static final MathContext CALCULATION_CONTEXT =
             MathContext.DECIMAL128;
 
     public ConversionQuote {
@@ -51,7 +51,7 @@ public record ConversionQuote(
                 referenceRate.pair().quote(),
                 source.amount().multiply(
                         referenceRate.value(),
-                        CALCULACTION_CONTEXT
+                        CALCULATION_CONTEXT
                 )
         );
     }

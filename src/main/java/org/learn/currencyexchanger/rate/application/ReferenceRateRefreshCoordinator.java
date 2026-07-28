@@ -17,12 +17,12 @@ public final class ReferenceRateRefreshCoordinator {
 
     private final ConcurrentMap<
             CurrencyPair,
-            FutureTask<ReferenceRateSnapshot>
+            FutureTask<ResolvedReferenceRate>
             >
             refreshesInProgress = new ConcurrentHashMap<>();
 
-    private static ReferenceRateSnapshot await(
-            FutureTask<ReferenceRateSnapshot> refresh
+    private static ResolvedReferenceRate await(
+            FutureTask<ResolvedReferenceRate> refresh
     ) {
         try {
             return refresh.get();
@@ -56,9 +56,9 @@ public final class ReferenceRateRefreshCoordinator {
         );
     }
 
-    public ReferenceRateSnapshot execute(
+    public ResolvedReferenceRate execute(
             CurrencyPair pair,
-            Supplier<ReferenceRateSnapshot> refreshAction
+            Supplier<ResolvedReferenceRate> refreshAction
     ) {
         Objects.requireNonNull(
                 pair,
@@ -70,7 +70,7 @@ public final class ReferenceRateRefreshCoordinator {
                 "Refresh action cannot be null"
         );
 
-        FutureTask<ReferenceRateSnapshot> candidate =
+        FutureTask<ResolvedReferenceRate> candidate =
                 new FutureTask<>(
                         () -> Objects.requireNonNull(
                                 refreshAction.get(),
@@ -78,7 +78,7 @@ public final class ReferenceRateRefreshCoordinator {
                         )
                 );
 
-        FutureTask<ReferenceRateSnapshot> existing =
+        FutureTask<ResolvedReferenceRate> existing =
                 refreshesInProgress.putIfAbsent(
                         pair,
                         candidate

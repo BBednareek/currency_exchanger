@@ -27,7 +27,7 @@ public record FrankfurterProperties(
         );
     }
 
-    public static void validateBaseURL(URI baseURL) {
+    private static void validateBaseURL(URI baseURL) {
         Objects.requireNonNull(
                 baseURL,
                 "Frankfurter base URL cannot be null"
@@ -57,7 +57,7 @@ public record FrankfurterProperties(
 
     }
 
-    public static void requirePositive(
+    private static void requirePositive(
             Duration duration,
             String propertyName) {
         Objects.requireNonNull(

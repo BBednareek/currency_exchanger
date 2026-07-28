@@ -6,15 +6,20 @@ import org.learn.currencyexchanger.rate.domain.Money;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 
 @Service
 public class CurrencyConversionService {
-    private final ReferenceRateService referenceRateService;
+
+    private final ReferenceRateResolver referenceRateResolver;
 
     public CurrencyConversionService(
-            ReferenceRateService referenceRateService
+            ReferenceRateResolver referenceRateResolver
     ) {
-        this.referenceRateService = referenceRateService;
+        this.referenceRateResolver = Objects.requireNonNull(
+                referenceRateResolver,
+                "Reference rate resolver cannot be null"
+        );
     }
 
     public ConversionSnapshot convert(
@@ -32,21 +37,18 @@ public class CurrencyConversionService {
                 amount
         );
 
-        ReferenceRateSnapshot rateSnapshot =
-                referenceRateService.getLatestRate(
-                        pair.base().value(),
-                        pair.quote().value()
-                );
+        ResolvedReferenceRate resolvedRate =
+                referenceRateResolver.resolve(pair);
 
         ConversionQuote conversionQuote =
                 ConversionQuote.calculate(
                         source,
-                        rateSnapshot.asReferenceRate()
+                        resolvedRate.referenceRate()
                 );
 
         return ConversionSnapshot.from(
                 conversionQuote,
-                rateSnapshot.stale()
+                resolvedRate.stale()
         );
     }
 }

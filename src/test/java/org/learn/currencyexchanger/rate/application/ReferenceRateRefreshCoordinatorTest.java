@@ -2,8 +2,8 @@ package org.learn.currencyexchanger.rate.application;
 
 import org.junit.jupiter.api.Test;
 import org.learn.currencyexchanger.rate.application.exception.RateProviderUnavailableException;
-import org.learn.currencyexchanger.rate.domain.CurrencyCode;
 import org.learn.currencyexchanger.rate.domain.CurrencyPair;
+import org.learn.currencyexchanger.rate.domain.ReferenceRate;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -29,16 +29,16 @@ class ReferenceRateRefreshCoordinatorTest {
     private static final CurrencyPair PAIR =
             CurrencyPair.of("USD", "PLN");
 
-    private static final ReferenceRateSnapshot RESULT =
-            new ReferenceRateSnapshot(
-                    new CurrencyCode("USD"),
-                    new CurrencyCode("PLN"),
-                    new BigDecimal("3.672100"),
-                    LocalDate.of(2026, 7, 28),
-                    Instant.parse(
-                            "2026-07-28T12:00:00Z"
-                    ),
-                    false
+    private static final ResolvedReferenceRate RESULT =
+            ResolvedReferenceRate.fresh(
+                    new ReferenceRate(
+                            PAIR,
+                            new BigDecimal("3.672100"),
+                            LocalDate.of(2026, 7, 28),
+                            Instant.parse(
+                                    "2026-07-28T12:00:00Z"
+                            )
+                    )
             );
 
     private final ReferenceRateRefreshCoordinator coordinator =
@@ -128,7 +128,7 @@ class ReferenceRateRefreshCoordinatorTest {
                 ExecutorService executor =
                         Executors.newVirtualThreadPerTaskExecutor()
         ) {
-            Future<ReferenceRateSnapshot> owner =
+            Future<ResolvedReferenceRate> owner =
                     executor.submit(() ->
                             coordinator.execute(
                                     PAIR,
@@ -149,7 +149,7 @@ class ReferenceRateRefreshCoordinatorTest {
                 fail("Refresh did not start");
             }
 
-            List<Future<ReferenceRateSnapshot>> followers =
+            List<Future<ResolvedReferenceRate>> followers =
                     new ArrayList<>();
 
             for (int index = 0;
@@ -199,7 +199,7 @@ class ReferenceRateRefreshCoordinatorTest {
                     owner.get(5, TimeUnit.SECONDS)
             );
 
-            for (Future<ReferenceRateSnapshot> follower
+            for (Future<ResolvedReferenceRate> follower
                     : followers) {
                 assertSame(
                         RESULT,
@@ -242,7 +242,7 @@ class ReferenceRateRefreshCoordinatorTest {
 
         assertSame(expected, result);
 
-        ReferenceRateSnapshot retryResult =
+        ResolvedReferenceRate retryResult =
                 coordinator.execute(
                         PAIR,
                         () -> {

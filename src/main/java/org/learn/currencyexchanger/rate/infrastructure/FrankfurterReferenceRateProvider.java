@@ -10,7 +10,6 @@ import org.learn.currencyexchanger.rate.domain.ReferenceRate;
 import org.learn.currencyexchanger.rate.domain.exception.InvalidCurrencyCodeException;
 import org.learn.currencyexchanger.rate.domain.exception.InvalidCurrencyPairException;
 import org.learn.currencyexchanger.rate.domain.exception.InvalidReferenceRateException;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.ResourceAccessException;
@@ -27,7 +26,6 @@ public final class FrankfurterReferenceRateProvider
     private final Clock clock;
 
     public FrankfurterReferenceRateProvider(
-            @Qualifier("frankfurterRestClient")
             RestClient restClient,
             Clock clock
     ) {

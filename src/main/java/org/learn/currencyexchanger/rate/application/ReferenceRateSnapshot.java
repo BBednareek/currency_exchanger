@@ -1,7 +1,6 @@
 package org.learn.currencyexchanger.rate.application;
 
 import org.learn.currencyexchanger.rate.domain.CurrencyCode;
-import org.learn.currencyexchanger.rate.domain.CurrencyPair;
 import org.learn.currencyexchanger.rate.domain.ReferenceRate;
 
 import java.math.BigDecimal;
@@ -17,6 +16,7 @@ public record ReferenceRateSnapshot(
         Instant fetchedAt,
         boolean stale
 ) {
+
     public ReferenceRateSnapshot {
         Objects.requireNonNull(
                 base,
@@ -44,26 +44,16 @@ public record ReferenceRateSnapshot(
         );
     }
 
-    public static ReferenceRateSnapshot fresh(
-            ReferenceRate referenceRate
-    ) {
-        return from(referenceRate, false);
-    }
-
-    public static ReferenceRateSnapshot stale(
-            ReferenceRate referenceRate
-    ) {
-        return from(referenceRate, true);
-    }
-
-    private static ReferenceRateSnapshot from(
-            ReferenceRate referenceRate,
-            boolean stale
+    public static ReferenceRateSnapshot from(
+            ResolvedReferenceRate resolvedRate
     ) {
         Objects.requireNonNull(
-                referenceRate,
-                "Reference rate cannot be null"
+                resolvedRate,
+                "Resolved reference rate cannot be null"
         );
+
+        ReferenceRate referenceRate =
+                resolvedRate.referenceRate();
 
         return new ReferenceRateSnapshot(
                 referenceRate.pair().base(),
@@ -71,16 +61,7 @@ public record ReferenceRateSnapshot(
                 referenceRate.value(),
                 referenceRate.effectiveDate(),
                 referenceRate.fetchedAt(),
-                stale
-        );
-    }
-
-    ReferenceRate asReferenceRate() {
-        return new ReferenceRate(
-                new CurrencyPair(base, quote),
-                rate,
-                effectiveDate,
-                fetchedAt
+                resolvedRate.stale()
         );
     }
 }
