@@ -19,7 +19,7 @@ public class ReferenceRateController {
     }
 
     @GetMapping("/{base}/{quote}")
-    public ReferenceRateResponse getLatestRoute(
+    public ReferenceRateResponse getLatestRate(
             @PathVariable String base,
             @PathVariable String quote
     ) {
