@@ -13,10 +13,6 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.InsufficientAuthenticationException;
-import org.springframework.security.web.csrf.MissingCsrfTokenException;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -59,28 +55,6 @@ class ApiExceptionHandlerTest {
     private static Stream<Arguments> mappedProblems() {
         return Stream.of(
                 Arguments.of(
-                        "authentication-required",
-                        ApiProblemCode.AUTHENTICATION_REQUIRED,
-                        ApiProblemCode.AUTHENTICATION_REQUIRED
-                                .defaultDetail()
-                ),
-                Arguments.of(
-                        "invalid-csrf",
-                        ApiProblemCode.INVALID_CSRF_TOKEN,
-                        ApiProblemCode.INVALID_CSRF_TOKEN.defaultDetail()
-                ),
-                Arguments.of(
-                        "access-denied",
-                        ApiProblemCode.ACCESS_DENIED,
-                        ApiProblemCode.ACCESS_DENIED.defaultDetail()
-                ),
-                Arguments.of(
-                        "authentication-failed",
-                        ApiProblemCode.AUTHENTICATION_FAILED,
-                        ApiProblemCode.AUTHENTICATION_FAILED
-                                .defaultDetail()
-                ),
-                Arguments.of(
                         "unexpected",
                         ApiProblemCode.INTERNAL_ERROR,
                         ApiProblemCode.INTERNAL_ERROR.defaultDetail()
@@ -90,7 +64,7 @@ class ApiExceptionHandlerTest {
 
     @ParameterizedTest
     @MethodSource("mappedProblems")
-    void shouldMapApplicationDomainAndSecurityExceptions(
+    void shouldMapApplicatiFonDomainAndSecurityExceptions(
             String caseName,
             ApiProblemCode expectedCode,
             String expectedDetail
@@ -299,18 +273,6 @@ class ApiExceptionHandlerTest {
             throw switch (caseName) {
                 case "data-conflict" -> new DataIntegrityViolationException(
                         "Sensitive database details"
-                );
-                case "authentication-required" -> new InsufficientAuthenticationException(
-                        "Full authentication is required"
-                );
-                case "invalid-csrf" -> new MissingCsrfTokenException(
-                        "Actual internal CSRF message"
-                );
-                case "access-denied" -> new AccessDeniedException(
-                        "Internal authorization details"
-                );
-                case "authentication-failed" -> new BadCredentialsException(
-                        "User john.doe does not exist"
                 );
                 case "unexpected" -> new IllegalStateException(
                         "Sensitive implementation details"

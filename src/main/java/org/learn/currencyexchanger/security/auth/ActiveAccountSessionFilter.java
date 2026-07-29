@@ -4,7 +4,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.learn.currencyexchanger.security.api.ApiSecurityExceptionHandler;
+import org.learn.currencyexchanger.security.api.SecurityExceptionResolverBridge;
 import org.learn.currencyexchanger.user.application.port.UserRepository;
 import org.learn.currencyexchanger.user.domain.UserStatus;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
@@ -19,12 +19,12 @@ public final class ActiveAccountSessionFilter extends
         OncePerRequestFilter {
     private final UserRepository userRepository;
     private final LogoutHandler logoutHandler;
-    private final ApiSecurityExceptionHandler exceptionHandler;
+    private final SecurityExceptionResolverBridge exceptionHandler;
 
     public ActiveAccountSessionFilter(
             UserRepository userRepository,
             LogoutHandler logoutHandler,
-            ApiSecurityExceptionHandler exceptionHandler
+            SecurityExceptionResolverBridge exceptionHandler
     ) {
         this.userRepository = userRepository;
         this.logoutHandler = logoutHandler;

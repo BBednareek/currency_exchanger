@@ -4,7 +4,7 @@ import jakarta.servlet.FilterChain;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.learn.currencyexchanger.security.api.ApiSecurityExceptionHandler;
+import org.learn.currencyexchanger.security.api.SecurityExceptionResolverBridge;
 import org.learn.currencyexchanger.user.application.port.UserRepository;
 import org.learn.currencyexchanger.user.domain.User;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -36,18 +36,25 @@ class ActiveAccountSessionFilterTest {
 
     private UserRepository userRepository;
     private LogoutHandler logoutHandler;
-    private ApiSecurityExceptionHandler exceptionHandler;
+    private SecurityExceptionResolverBridge exceptionHandler;
     private FilterChain filterChain;
     private MockHttpServletRequest request;
     private MockHttpServletResponse response;
     private ActiveAccountSessionFilter filter;
+
+    private static void setAuthentication(
+            Authentication authentication
+    ) {
+        SecurityContextHolder.getContext()
+                .setAuthentication(authentication);
+    }
 
     @BeforeEach
     void setUp() {
         userRepository = mock(UserRepository.class);
         logoutHandler = mock(LogoutHandler.class);
         exceptionHandler = mock(
-                ApiSecurityExceptionHandler.class
+                SecurityExceptionResolverBridge.class
         );
         filterChain = mock(FilterChain.class);
         request = new MockHttpServletRequest(
@@ -210,12 +217,5 @@ class ActiveAccountSessionFilterTest {
 
         verify(filterChain, never())
                 .doFilter(request, response);
-    }
-
-    private static void setAuthentication(
-            Authentication authentication
-    ) {
-        SecurityContextHolder.getContext()
-                .setAuthentication(authentication);
     }
 }

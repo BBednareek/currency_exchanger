@@ -13,10 +13,6 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.authentication.InsufficientAuthenticationException;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.csrf.CsrfException;
 import org.springframework.validation.method.ParameterValidationResult;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -95,54 +91,6 @@ public final class ApiExceptionHandler
          * powielać w odpowiedzi błędu.
          */
         return URI.create(request.getRequestURI());
-    }
-
-    @ExceptionHandler(InsufficientAuthenticationException.class)
-    public ProblemDetail handleAuthenticationRequired(
-            InsufficientAuthenticationException exception,
-            HttpServletRequest request
-    ) {
-        return problem(
-                ApiProblemCode.AUTHENTICATION_REQUIRED,
-                request
-        );
-    }
-
-    @ExceptionHandler(CsrfException.class)
-    public ProblemDetail handleCsrfFailure(
-            CsrfException exception,
-            HttpServletRequest request
-    ) {
-        return problem(
-                ApiProblemCode.INVALID_CSRF_TOKEN,
-                request
-        );
-    }
-
-    @ExceptionHandler(AccessDeniedException.class)
-    public ProblemDetail handleAccessDenied(
-            AccessDeniedException exception,
-            HttpServletRequest request
-    ) {
-        return problem(
-                ApiProblemCode.ACCESS_DENIED,
-                request
-        );
-    }
-
-    /*
-     * Nie przekazujemy wiadomości z AuthenticationException.
-     * Klient nie powinien rozróżniać błędnego hasła od braku użytkownika.
-     */
-    @ExceptionHandler(AuthenticationException.class)
-    public ProblemDetail handleAuthenticationFailure(
-            AuthenticationException exception,
-            HttpServletRequest request
-    ) {
-        return problem(
-                ApiProblemCode.AUTHENTICATION_FAILED,
-                request
-        );
     }
 
     @Override

@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.learn.currencyexchanger.common.api.problem.ApiExceptionHandler;
 import org.learn.currencyexchanger.common.api.problem.ApiProblemFactory;
+import org.learn.currencyexchanger.security.api.problem.SecurityApiExceptionHandler;
 import org.learn.currencyexchanger.security.auth.AppUserPrincipal;
 import org.learn.currencyexchanger.user.domain.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +45,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc(addFilters = false)
 @Import({
         ApiExceptionHandler.class,
-        ApiProblemFactory.class
+        ApiProblemFactory.class,
+        SecurityApiExceptionHandler.class
 })
 class LoginControllerTest {
 

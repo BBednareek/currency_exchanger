@@ -1,7 +1,7 @@
 package org.learn.currencyexchanger.security.configuration;
 
 import jakarta.servlet.DispatcherType;
-import org.learn.currencyexchanger.security.api.ApiSecurityExceptionHandler;
+import org.learn.currencyexchanger.security.api.SecurityExceptionResolverBridge;
 import org.learn.currencyexchanger.security.auth.ActiveAccountSessionFilter;
 import org.learn.currencyexchanger.user.application.port.UserRepository;
 import org.springframework.context.annotation.Bean;
@@ -25,12 +25,12 @@ public class SecurityConfiguration {
     public ActiveAccountSessionFilter activeAccountSessionFilter(
             UserRepository userRepository,
             LogoutHandler logoutHandler,
-            ApiSecurityExceptionHandler apiSecurityExceptionHandler
+            SecurityExceptionResolverBridge securityExceptionResolverBridge
     ) {
         return new ActiveAccountSessionFilter(
                 userRepository,
                 logoutHandler,
-                apiSecurityExceptionHandler
+                securityExceptionResolverBridge
         );
     }
 
@@ -39,7 +39,7 @@ public class SecurityConfiguration {
             HttpSecurity http,
             CsrfTokenRepository csrfTokenRepository,
             SecurityContextRepository securityContextRepository,
-            ApiSecurityExceptionHandler apiSecurityExceptionHandler,
+            SecurityExceptionResolverBridge securityExceptionResolverBridge,
             ActiveAccountSessionFilter activeAccountSessionFilter
     ) {
         http
@@ -72,10 +72,10 @@ public class SecurityConfiguration {
                 )
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(
-                                apiSecurityExceptionHandler
+                                securityExceptionResolverBridge
                         )
                         .accessDeniedHandler(
-                                apiSecurityExceptionHandler
+                                securityExceptionResolverBridge
                         )
                 )
                 .addFilterAfter(activeAccountSessionFilter, CsrfFilter.class)

@@ -13,13 +13,13 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.ModelAndView;
 
 @Component
-public final class ApiSecurityExceptionHandler implements
+public final class SecurityExceptionResolverBridge implements
         AuthenticationEntryPoint,
         AccessDeniedHandler {
 
     private final HandlerExceptionResolver exceptionResolver;
 
-    public ApiSecurityExceptionHandler(
+    public SecurityExceptionResolverBridge(
             @Qualifier("handlerExceptionResolver")
             HandlerExceptionResolver exceptionResolver
     ) {
