@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.learn.currencyexchanger.auth.domain.exception.InvalidPasswordException;
 import org.learn.currencyexchanger.rate.application.exception.InvalidRateProviderResponseException;
 import org.learn.currencyexchanger.rate.application.exception.RateProviderUnavailableException;
 import org.learn.currencyexchanger.rate.application.exception.ReferenceRateNotFoundException;
@@ -90,11 +89,6 @@ class ApiExceptionHandlerTest {
                         "access-denied",
                         ApiProblemCode.ACCESS_DENIED,
                         ApiProblemCode.ACCESS_DENIED.defaultDetail()
-                ),
-                Arguments.of(
-                        "invalid-password",
-                        ApiProblemCode.INVALID_PASSWORD,
-                        "Password must contain at least 12 characters"
                 ),
                 Arguments.of(
                         "authentication-failed",
@@ -360,9 +354,6 @@ class ApiExceptionHandlerTest {
                 );
                 case "access-denied" -> new AccessDeniedException(
                         "Internal authorization details"
-                );
-                case "invalid-password" -> new InvalidPasswordException(
-                        "Password must contain at least 12 characters"
                 );
                 case "authentication-failed" -> new BadCredentialsException(
                         "User john.doe does not exist"

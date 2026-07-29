@@ -2,7 +2,6 @@ package org.learn.currencyexchanger.common.api.problem;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.jspecify.annotations.NonNull;
-import org.learn.currencyexchanger.auth.domain.exception.InvalidPasswordException;
 import org.learn.currencyexchanger.rate.application.exception.InvalidRateProviderResponseException;
 import org.learn.currencyexchanger.rate.application.exception.RateProviderUnavailableException;
 import org.learn.currencyexchanger.rate.application.exception.ReferenceRateNotFoundException;
@@ -134,18 +133,6 @@ public final class ApiExceptionHandler
     ) {
         return problem(
                 ApiProblemCode.ACCESS_DENIED,
-                request
-        );
-    }
-
-    @ExceptionHandler(InvalidPasswordException.class)
-    public ProblemDetail handleInvalidPassword(
-            InvalidPasswordException exception,
-            HttpServletRequest request
-    ) {
-        return problem(
-                ApiProblemCode.INVALID_PASSWORD,
-                exception.getMessage(),
                 request
         );
     }

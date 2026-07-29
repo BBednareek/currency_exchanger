@@ -1,11 +1,12 @@
 package org.learn.currencyexchanger.auth.api;
 
 import org.junit.jupiter.api.Test;
+import org.learn.currencyexchanger.auth.api.problem.AuthApiExceptionHandler;
 import org.learn.currencyexchanger.auth.application.RegistrationResult;
 import org.learn.currencyexchanger.auth.application.RegistrationService;
 import org.learn.currencyexchanger.auth.domain.exception.InvalidPasswordException;
-import org.learn.currencyexchanger.common.api.problem.ApiExceptionHandler;
 import org.learn.currencyexchanger.common.api.problem.ApiProblemFactory;
+import org.learn.currencyexchanger.common.api.problem.FrameworkApiExceptionHandler;
 import org.learn.currencyexchanger.user.api.problem.UserApiExceptionHandler;
 import org.learn.currencyexchanger.user.application.exception.UsernameAlreadyUsedException;
 import org.learn.currencyexchanger.user.domain.UserRole;
@@ -31,9 +32,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(RegistrationController.class)
 @AutoConfigureMockMvc(addFilters = false)
 @Import({
-        ApiExceptionHandler.class,
+        AuthApiExceptionHandler.class,
         UserApiExceptionHandler.class,
-        ApiProblemFactory.class
+        ApiProblemFactory.class,
+        FrameworkApiExceptionHandler.class
 })
 class RegistrationControllerTest {
 
