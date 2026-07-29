@@ -6,6 +6,7 @@ import org.learn.currencyexchanger.auth.application.RegistrationService;
 import org.learn.currencyexchanger.auth.domain.exception.InvalidPasswordException;
 import org.learn.currencyexchanger.common.api.problem.ApiExceptionHandler;
 import org.learn.currencyexchanger.common.api.problem.ApiProblemFactory;
+import org.learn.currencyexchanger.user.api.problem.UserApiExceptionHandler;
 import org.learn.currencyexchanger.user.application.exception.UsernameAlreadyUsedException;
 import org.learn.currencyexchanger.user.domain.UserRole;
 import org.learn.currencyexchanger.user.domain.UserStatus;
@@ -31,6 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc(addFilters = false)
 @Import({
         ApiExceptionHandler.class,
+        UserApiExceptionHandler.class,
         ApiProblemFactory.class
 })
 class RegistrationControllerTest {

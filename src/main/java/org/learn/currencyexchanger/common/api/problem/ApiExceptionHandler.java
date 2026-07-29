@@ -10,18 +10,11 @@ import org.learn.currencyexchanger.rate.application.exception.UnsupportedCurrenc
 import org.learn.currencyexchanger.rate.domain.exception.InvalidCurrencyCodeException;
 import org.learn.currencyexchanger.rate.domain.exception.InvalidCurrencyPairException;
 import org.learn.currencyexchanger.rate.domain.exception.InvalidMoneyAmountException;
-import org.learn.currencyexchanger.user.application.exception.UserNotFoundException;
-import org.learn.currencyexchanger.user.application.exception.UsernameAlreadyUsedException;
-import org.learn.currencyexchanger.user.domain.exception.DisabledUserCannotBeModifiedException;
-import org.learn.currencyexchanger.user.domain.exception.InvalidUsernameException;
-import org.learn.currencyexchanger.user.domain.exception.UserCannotBeUnlockedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.ConversionNotSupportedException;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.context.MessageSourceResolvable;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
@@ -112,81 +105,6 @@ public final class ApiExceptionHandler
         return URI.create(request.getRequestURI());
     }
 
-    @ExceptionHandler(UserNotFoundException.class)
-    public ProblemDetail handleUserNotFound(
-            UserNotFoundException exception,
-            HttpServletRequest request
-    ) {
-        return problem(
-                ApiProblemCode.USER_NOT_FOUND,
-                request
-        );
-    }
-
-    @ExceptionHandler(UsernameAlreadyUsedException.class)
-    public ProblemDetail handleUsernameAlreadyUsed(
-            UsernameAlreadyUsedException exception,
-            HttpServletRequest request
-    ) {
-        return problem(
-                ApiProblemCode.USERNAME_ALREADY_USED,
-                request
-        );
-    }
-
-    @ExceptionHandler(InvalidUsernameException.class)
-    public ProblemDetail handleInvalidUsername(
-            InvalidUsernameException exception,
-            HttpServletRequest request
-    ) {
-        return problem(
-                ApiProblemCode.INVALID_USERNAME,
-                exception.getMessage(),
-                request
-        );
-    }
-
-    /*
-     * Zabezpieczenie race condition:
-     * dwa żądania mogą jednocześnie przejść existsByUsername(),
-     * a konflikt rozstrzygnie dopiero ograniczenie UNIQUE w bazie.
-     */
-    @ExceptionHandler(DataIntegrityViolationException.class)
-    public ProblemDetail handleDataIntegrityViolation(
-            DataIntegrityViolationException exception,
-            HttpServletRequest request
-    ) {
-        log.warn(
-                "Database integrity constraint was violated while handling {} {}",
-                request.getMethod(),
-                request.getRequestURI()
-        );
-        log.debug(
-                "Database integrity violation details",
-                exception
-        );
-
-        return problem(
-                ApiProblemCode.DATA_CONFLICT,
-                request
-        );
-    }
-
-    /*
-     * Encja User używa @Version, dlatego równoległa aktualizacja
-     * może skończyć się wyjątkiem optimistic locking.
-     */
-    @ExceptionHandler(OptimisticLockingFailureException.class)
-    public ProblemDetail handleOptimisticLockingFailure(
-            OptimisticLockingFailureException exception,
-            HttpServletRequest request
-    ) {
-        return problem(
-                ApiProblemCode.CONCURRENT_MODIFICATION,
-                request
-        );
-    }
-
     @ExceptionHandler(InsufficientAuthenticationException.class)
     public ProblemDetail handleAuthenticationRequired(
             InsufficientAuthenticationException exception,
@@ -216,21 +134,6 @@ public final class ApiExceptionHandler
     ) {
         return problem(
                 ApiProblemCode.ACCESS_DENIED,
-                request
-        );
-    }
-
-    @ExceptionHandler({
-            DisabledUserCannotBeModifiedException.class,
-            UserCannotBeUnlockedException.class
-    })
-    public ProblemDetail handleUserStateConflict(
-            RuntimeException exception,
-            HttpServletRequest request
-    ) {
-        return problem(
-                ApiProblemCode.USER_STATE_CONFLICT,
-                exception.getMessage(),
                 request
         );
     }

@@ -16,18 +16,11 @@ import org.learn.currencyexchanger.rate.domain.CurrencyPair;
 import org.learn.currencyexchanger.rate.domain.exception.InvalidCurrencyCodeException;
 import org.learn.currencyexchanger.rate.domain.exception.InvalidCurrencyPairException;
 import org.learn.currencyexchanger.rate.domain.exception.InvalidMoneyAmountException;
-import org.learn.currencyexchanger.user.application.exception.UserNotFoundException;
-import org.learn.currencyexchanger.user.application.exception.UsernameAlreadyUsedException;
-import org.learn.currencyexchanger.user.domain.UserStatus;
-import org.learn.currencyexchanger.user.domain.exception.DisabledUserCannotBeModifiedException;
-import org.learn.currencyexchanger.user.domain.exception.InvalidUsernameException;
-import org.learn.currencyexchanger.user.domain.exception.UserCannotBeUnlockedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -42,7 +35,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -84,32 +76,6 @@ class ApiExceptionHandlerTest {
                         "Money amount must be greater than zero"
                 ),
                 Arguments.of(
-                        "user-not-found",
-                        ApiProblemCode.USER_NOT_FOUND,
-                        ApiProblemCode.USER_NOT_FOUND.defaultDetail()
-                ),
-                Arguments.of(
-                        "username-already-used",
-                        ApiProblemCode.USERNAME_ALREADY_USED,
-                        ApiProblemCode.USERNAME_ALREADY_USED.defaultDetail()
-                ),
-                Arguments.of(
-                        "invalid-username",
-                        ApiProblemCode.INVALID_USERNAME,
-                        "Username contains unsupported characters"
-                ),
-                Arguments.of(
-                        "data-conflict",
-                        ApiProblemCode.DATA_CONFLICT,
-                        ApiProblemCode.DATA_CONFLICT.defaultDetail()
-                ),
-                Arguments.of(
-                        "concurrent-modification",
-                        ApiProblemCode.CONCURRENT_MODIFICATION,
-                        ApiProblemCode.CONCURRENT_MODIFICATION
-                                .defaultDetail()
-                ),
-                Arguments.of(
                         "authentication-required",
                         ApiProblemCode.AUTHENTICATION_REQUIRED,
                         ApiProblemCode.AUTHENTICATION_REQUIRED
@@ -124,16 +90,6 @@ class ApiExceptionHandlerTest {
                         "access-denied",
                         ApiProblemCode.ACCESS_DENIED,
                         ApiProblemCode.ACCESS_DENIED.defaultDetail()
-                ),
-                Arguments.of(
-                        "disabled-user",
-                        ApiProblemCode.USER_STATE_CONFLICT,
-                        "Disabled user cannot be modified"
-                ),
-                Arguments.of(
-                        "cannot-unlock",
-                        ApiProblemCode.USER_STATE_CONFLICT,
-                        "User with status ACTIVE cannot be unlocked"
                 ),
                 Arguments.of(
                         "invalid-password",
@@ -393,20 +349,8 @@ class ApiExceptionHandlerTest {
                 @PathVariable String caseName
         ) {
             throw switch (caseName) {
-                case "user-not-found" -> new UserNotFoundException(
-                        UUID.fromString(
-                                "00000000-0000-0000-0000-000000000001"
-                        )
-                );
-                case "username-already-used" -> new UsernameAlreadyUsedException();
-                case "invalid-username" -> new InvalidUsernameException(
-                        "Username contains unsupported characters"
-                );
                 case "data-conflict" -> new DataIntegrityViolationException(
                         "Sensitive database details"
-                );
-                case "concurrent-modification" -> new OptimisticLockingFailureException(
-                        "Optimistic lock failed"
                 );
                 case "authentication-required" -> new InsufficientAuthenticationException(
                         "Full authentication is required"
@@ -416,10 +360,6 @@ class ApiExceptionHandlerTest {
                 );
                 case "access-denied" -> new AccessDeniedException(
                         "Internal authorization details"
-                );
-                case "disabled-user" -> new DisabledUserCannotBeModifiedException();
-                case "cannot-unlock" -> new UserCannotBeUnlockedException(
-                        UserStatus.ACTIVE
                 );
                 case "invalid-password" -> new InvalidPasswordException(
                         "Password must contain at least 12 characters"

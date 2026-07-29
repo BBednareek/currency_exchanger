@@ -96,12 +96,6 @@ public enum ApiProblemCode {
             "Unsupported media type",
             "The request content type is not supported"
     ),
-    DATA_CONFLICT(
-            "data-conflict",
-            HttpStatus.CONFLICT,
-            "Data conflict",
-            "The request conflicts with the current state of the resource"
-    ),
     CONCURRENT_MODIFICATION(
             "concurrent-modification",
             HttpStatus.CONFLICT,
