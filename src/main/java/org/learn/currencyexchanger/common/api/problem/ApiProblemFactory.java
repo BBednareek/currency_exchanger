@@ -1,5 +1,6 @@
 package org.learn.currencyexchanger.common.api.problem;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ProblemDetail;
 import org.springframework.stereotype.Component;
 
@@ -12,6 +13,15 @@ public final class ApiProblemFactory {
 
     private static final String CODE_PROPERTY = "code";
     private static final String VIOLATIONS_PROPERTY = "violations";
+
+    private static URI requestUri(HttpServletRequest request) {
+        Objects.requireNonNull(
+                request,
+                "HTTP request must not be null"
+        );
+
+        return URI.create(request.getRequestURI());
+    }
 
     public ProblemDetail create(
             ApiProblemCode code,
@@ -44,6 +54,28 @@ public final class ApiProblemFactory {
         problem.setProperty(CODE_PROPERTY, code.name());
 
         return problem;
+    }
+
+    public ProblemDetail create(
+            ApiProblemCode code,
+            HttpServletRequest request
+    ) {
+        return create(
+                code,
+                requestUri(request)
+        );
+    }
+
+    public ProblemDetail create(
+            ApiProblemCode code,
+            String detail,
+            HttpServletRequest request
+    ) {
+        return create(
+                code,
+                detail,
+                requestUri(request)
+        );
     }
 
     public ProblemDetail createValidationProblem(

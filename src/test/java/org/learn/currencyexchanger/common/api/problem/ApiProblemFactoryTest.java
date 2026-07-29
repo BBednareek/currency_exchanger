@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.http.ProblemDetail;
+import org.springframework.mock.web.MockHttpServletRequest;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -69,6 +70,27 @@ class ApiProblemFactoryTest {
         assertEquals(
                 "Username contains unsupported characters",
                 problem.getDetail()
+        );
+    }
+
+    @Test
+    void shouldCreateInstanceWithoutQueryString() {
+        MockHttpServletRequest request =
+                new MockHttpServletRequest(
+                        "GET",
+                        "/api/users/me"
+                );
+
+        request.setQueryString("token=sensitive");
+
+        ProblemDetail problem = factory.create(
+                ApiProblemCode.USER_NOT_FOUND,
+                request
+        );
+
+        assertEquals(
+                URI.create("/api/users/me"),
+                problem.getInstance()
         );
     }
 
