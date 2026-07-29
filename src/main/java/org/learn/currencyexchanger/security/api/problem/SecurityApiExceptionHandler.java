@@ -17,12 +17,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public final class SecurityApiExceptionHandler {
 
-    private final ApiProblemFactory problemFactory;
+    private final ApiProblemFactory apiProblemFactory;
 
     public SecurityApiExceptionHandler(
-            ApiProblemFactory problemFactory
+            ApiProblemFactory apiProblemFactory
     ) {
-        this.problemFactory = problemFactory;
+        this.apiProblemFactory = apiProblemFactory;
     }
 
     @ExceptionHandler(InsufficientAuthenticationException.class)
@@ -30,7 +30,7 @@ public final class SecurityApiExceptionHandler {
             InsufficientAuthenticationException exception,
             HttpServletRequest request
     ) {
-        return problemFactory.create(
+        return apiProblemFactory.create(
                 ApiProblemCode.AUTHENTICATION_REQUIRED,
                 request
         );
@@ -41,7 +41,7 @@ public final class SecurityApiExceptionHandler {
             CsrfException exception,
             HttpServletRequest request
     ) {
-        return problemFactory.create(
+        return apiProblemFactory.create(
                 ApiProblemCode.INVALID_CSRF_TOKEN,
                 request
         );
@@ -52,7 +52,7 @@ public final class SecurityApiExceptionHandler {
             AccessDeniedException exception,
             HttpServletRequest request
     ) {
-        return problemFactory.create(
+        return apiProblemFactory.create(
                 ApiProblemCode.ACCESS_DENIED,
                 request
         );
@@ -63,7 +63,7 @@ public final class SecurityApiExceptionHandler {
             AuthenticationException exception,
             HttpServletRequest request
     ) {
-        return problemFactory.create(
+        return apiProblemFactory.create(
                 ApiProblemCode.AUTHENTICATION_FAILED,
                 request
         );

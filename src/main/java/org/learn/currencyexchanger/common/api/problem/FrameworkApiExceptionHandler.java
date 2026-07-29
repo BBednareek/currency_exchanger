@@ -48,10 +48,12 @@ public final class FrameworkApiExceptionHandler
     private static final String DEFAULT_VALIDATION_MESSAGE =
             "Invalid value";
 
-    private final ApiProblemFactory problemFactory;
+    private final ApiProblemFactory apiProblemFactory;
 
-    public FrameworkApiExceptionHandler(ApiProblemFactory problemFactory) {
-        this.problemFactory = problemFactory;
+    public FrameworkApiExceptionHandler(
+            ApiProblemFactory apiProblemFactory
+    ) {
+        this.apiProblemFactory = apiProblemFactory;
     }
 
     private static String parameterPath(
@@ -344,7 +346,7 @@ public final class FrameworkApiExceptionHandler
                 exception
         );
 
-        return problemFactory.create(
+        return apiProblemFactory.create(
                 ApiProblemCode.INTERNAL_ERROR,
                 request
         );
@@ -370,7 +372,7 @@ public final class FrameworkApiExceptionHandler
                         .toList();
 
         ProblemDetail problem =
-                problemFactory.createValidationProblem(
+                apiProblemFactory.createValidationProblem(
                         normalizedViolations,
                         requestUri(request)
                 );
@@ -390,7 +392,7 @@ public final class FrameworkApiExceptionHandler
             HttpHeaders headers,
             WebRequest request
     ) {
-        ProblemDetail problem = problemFactory.create(
+        ProblemDetail problem = apiProblemFactory.create(
                 code,
                 requestUri(request)
         );
@@ -411,7 +413,7 @@ public final class FrameworkApiExceptionHandler
             HttpHeaders headers,
             WebRequest request
     ) {
-        ProblemDetail problem = problemFactory.create(
+        ProblemDetail problem = apiProblemFactory.create(
                 code,
                 detail,
                 requestUri(request)

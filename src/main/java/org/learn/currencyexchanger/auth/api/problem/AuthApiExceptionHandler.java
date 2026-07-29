@@ -13,20 +13,20 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @RestControllerAdvice
 public final class AuthApiExceptionHandler {
-    private final ApiProblemFactory problemFactory;
+    private final ApiProblemFactory apiProblemFactory;
 
     public AuthApiExceptionHandler(
-            ApiProblemFactory problemFactory
+            ApiProblemFactory apiProblemFactory
     ) {
-        this.problemFactory = problemFactory;
+        this.apiProblemFactory = apiProblemFactory;
     }
-    
+
     @ExceptionHandler(InvalidPasswordException.class)
     public ProblemDetail handleInvalidPassword(
             InvalidPasswordException exception,
             HttpServletRequest request
     ) {
-        return problemFactory.create(
+        return apiProblemFactory.create(
                 ApiProblemCode.INVALID_PASSWORD,
                 exception.getMessage(),
                 request

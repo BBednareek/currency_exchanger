@@ -18,12 +18,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @RestControllerAdvice
 public final class UserApiExceptionHandler {
-    private final ApiProblemFactory problemFactory;
+    private final ApiProblemFactory apiProblemFactory;
 
     public UserApiExceptionHandler(
-            ApiProblemFactory problemFactory
+            ApiProblemFactory apiProblemFactory
     ) {
-        this.problemFactory = problemFactory;
+        this.apiProblemFactory = apiProblemFactory;
     }
 
     @ExceptionHandler(UserNotFoundException.class)
@@ -31,7 +31,7 @@ public final class UserApiExceptionHandler {
             UserNotFoundException exception,
             HttpServletRequest request
     ) {
-        return problemFactory.create(
+        return apiProblemFactory.create(
                 ApiProblemCode.USER_NOT_FOUND,
                 request
         );
@@ -42,7 +42,7 @@ public final class UserApiExceptionHandler {
             UsernameAlreadyUsedException exception,
             HttpServletRequest request
     ) {
-        return problemFactory.create(
+        return apiProblemFactory.create(
                 ApiProblemCode.USERNAME_ALREADY_USED,
                 request
         );
@@ -53,13 +53,13 @@ public final class UserApiExceptionHandler {
             InvalidUsernameException exception,
             HttpServletRequest request
     ) {
-        return problemFactory.create(
+        return apiProblemFactory.create(
                 ApiProblemCode.INVALID_USERNAME,
                 exception.getMessage(),
                 request
         );
     }
-    
+
     /*
      * Encja User używa @Version, dlatego równoległa aktualizacja
      * może skończyć się wyjątkiem optimistic locking.
@@ -69,7 +69,7 @@ public final class UserApiExceptionHandler {
             OptimisticLockingFailureException exception,
             HttpServletRequest request
     ) {
-        return problemFactory.create(
+        return apiProblemFactory.create(
                 ApiProblemCode.CONCURRENT_MODIFICATION,
                 request
         );
@@ -83,7 +83,7 @@ public final class UserApiExceptionHandler {
             RuntimeException exception,
             HttpServletRequest request
     ) {
-        return problemFactory.create(
+        return apiProblemFactory.create(
                 ApiProblemCode.USER_STATE_CONFLICT,
                 exception.getMessage(),
                 request
