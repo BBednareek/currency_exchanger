@@ -7,7 +7,7 @@ import org.learn.currencyexchanger.security.api.SecurityExceptionResolverBridge;
 import org.learn.currencyexchanger.security.api.problem.SecurityApiExceptionHandler;
 import org.learn.currencyexchanger.security.configuration.SecurityConfiguration;
 import org.learn.currencyexchanger.security.configuration.SessionAuthenticationConfiguration;
-import org.learn.currencyexchanger.user.application.port.UserRepository;
+import org.learn.currencyexchanger.user.application.port.AccountStatusReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -44,7 +44,7 @@ class SecurityConfigurationTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private UserRepository userRepository;
+    private AccountStatusReader accountStatusReader;
 
     @MockitoBean
     private LogoutHandler logoutHandler;

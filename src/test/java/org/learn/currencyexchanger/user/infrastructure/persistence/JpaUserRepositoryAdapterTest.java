@@ -7,6 +7,7 @@ import jakarta.persistence.RollbackException;
 import org.junit.jupiter.api.Test;
 import org.learn.currencyexchanger.TestcontainersConfiguration;
 import org.learn.currencyexchanger.user.application.exception.UsernameAlreadyUsedException;
+import org.learn.currencyexchanger.user.application.port.AccountStatusReader;
 import org.learn.currencyexchanger.user.application.port.UserRepository;
 import org.learn.currencyexchanger.user.domain.User;
 import org.learn.currencyexchanger.user.domain.UserStatus;
@@ -36,6 +37,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 })
 class JpaUserRepositoryAdapterTest {
     private static final String PASSWORD_HASH = "{bcrypt}password-hash";
+
+    @Autowired
+    private AccountStatusReader accountStatusReader;
 
     @Autowired
     private UserRepository userRepository;
@@ -102,6 +106,53 @@ class JpaUserRepositoryAdapterTest {
 
         assertTrue(userRepository.existsByUsername("john.doe"));
         assertFalse(userRepository.existsByUsername("unknown.user"));
+    }
+
+    @Test
+    void shouldReportActiveAccountAsActive() {
+        User user = userRepository.save(
+                User.register(
+                        "active.user",
+                        PASSWORD_HASH
+                )
+        );
+
+        assertTrue(accountStatusReader.isActive(user.getId()));
+    }
+
+    @Test
+    void shouldReportLockedAccountAsInactive() {
+        User user = User.register(
+                "locked.user",
+                PASSWORD_HASH
+        );
+        user.lock();
+
+        userRepository.save(user);
+
+        assertFalse(accountStatusReader.isActive(user.getId()));
+    }
+
+    @Test
+    void shouldReportDisabledAccountAsInactive() {
+        User user = User.register(
+                "disabled.status.user",
+                PASSWORD_HASH
+        );
+        user.disable(
+                Instant.parse("2026-07-27T10:15:30Z")
+        );
+
+        userRepository.save(user);
+
+        assertFalse(accountStatusReader.isActive(user.getId()));
+    }
+
+    @Test
+    void shouldReportMissingAccountAsInactive() {
+        assertFalse(
+                accountStatusReader.isActive(UUID.randomUUID())
+        );
     }
 
     @Test

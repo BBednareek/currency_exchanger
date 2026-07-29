@@ -6,6 +6,7 @@ import org.learn.currencyexchanger.auth.api.LoginRequest;
 import org.learn.currencyexchanger.auth.api.RegisterRequest;
 import org.learn.currencyexchanger.auth.application.RegistrationService;
 import org.learn.currencyexchanger.security.api.CsrfTokenResponse;
+import org.learn.currencyexchanger.user.application.UserService;
 import org.learn.currencyexchanger.user.application.exception.UsernameAlreadyUsedException;
 import org.learn.currencyexchanger.user.application.port.UserRepository;
 import org.learn.currencyexchanger.user.domain.User;
@@ -57,6 +58,9 @@ class AuthenticationIntegrationTest {
             Instant.parse("2026-07-27T10:15:30Z");
 
     @Autowired
+    private UserService userService;
+
+    @Autowired
     private MockMvc mockMvc;
 
     @Autowired
@@ -75,6 +79,44 @@ class AuthenticationIntegrationTest {
         return prefix + UUID.randomUUID()
                 .toString()
                 .replace("-", "");
+    }
+
+    @Test
+    void shouldInvalidateExistingSessionAfterAccountIsDisabled() throws Exception {
+        User user = persistUser("active_session_");
+        CsrfSession csrf = obtainCsrfToken();
+
+        MvcResult loginResult = login(
+                csrf,
+                user.getUsername(),
+                PASSWORD
+        )
+                .andExpect(status().isNoContent())
+                .andReturn();
+
+        MockHttpSession authenticatedSession =
+                (MockHttpSession) loginResult
+                        .getRequest()
+                        .getSession(false);
+
+        assertNotNull(authenticatedSession);
+
+        userService.disableOwnAccount(user.getId());
+
+        mockMvc.perform(
+                        get("/api/users/me")
+                                .session(authenticatedSession)
+                                .accept(MediaType.APPLICATION_PROBLEM_JSON)
+                )
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().contentTypeCompatibleWith(
+                        MediaType.APPLICATION_PROBLEM_JSON
+                ))
+                .andExpect(jsonPath("$.code").value(
+                        "AUTHENTICATION_REQUIRED"
+                ));
+
+        assertTrue(authenticatedSession.isInvalid());
     }
 
     @Test

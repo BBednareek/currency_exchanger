@@ -2,12 +2,15 @@ package org.learn.currencyexchanger.user.infrastructure.persistence;
 
 import org.learn.currencyexchanger.user.application.exception.ConcurrentUserModificationException;
 import org.learn.currencyexchanger.user.application.exception.UsernameAlreadyUsedException;
+import org.learn.currencyexchanger.user.application.port.AccountStatusReader;
 import org.learn.currencyexchanger.user.application.port.UserRepository;
 import org.learn.currencyexchanger.user.domain.User;
+import org.learn.currencyexchanger.user.domain.UserStatus;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Repository;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -17,7 +20,9 @@ import java.util.UUID;
 // pozniejsza zmiana sposobu przechowywania nie zmienia serwisu
 
 @Repository
-public class JpaUserRepositoryAdapter implements UserRepository {
+public class JpaUserRepositoryAdapter implements
+        UserRepository,
+        AccountStatusReader {
     private static final String USERNAME_UNIQUE_CONSTRAINT =
             "uk_app_user_username";
 
@@ -84,5 +89,16 @@ public class JpaUserRepositoryAdapter implements UserRepository {
                     exception
             );
         }
+    }
+
+    @Override
+    public boolean isActive(UUID userId) {
+        return springDataUserRepository.existsByIdAndStatus(
+                Objects.requireNonNull(
+                        userId,
+                        "User ID must not be null"
+                ),
+                UserStatus.ACTIVE
+        );
     }
 }

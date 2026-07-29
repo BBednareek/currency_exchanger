@@ -5,8 +5,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.learn.currencyexchanger.security.api.SecurityExceptionResolverBridge;
-import org.learn.currencyexchanger.user.application.port.UserRepository;
+import org.learn.currencyexchanger.user.application.port.AccountStatusReader;
 import org.learn.currencyexchanger.user.domain.User;
+import org.mockito.ArgumentCaptor;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
@@ -16,12 +17,11 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 
-import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
+import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -34,9 +34,9 @@ class ActiveAccountSessionFilterTest {
     private static final String PASSWORD_HASH =
             "{bcrypt}password-hash";
 
-    private UserRepository userRepository;
+    private AccountStatusReader accountStatusReader;
     private LogoutHandler logoutHandler;
-    private SecurityExceptionResolverBridge exceptionHandler;
+    private SecurityExceptionResolverBridge exceptionResolverBridge;
     private FilterChain filterChain;
     private MockHttpServletRequest request;
     private MockHttpServletResponse response;
@@ -51,21 +51,23 @@ class ActiveAccountSessionFilterTest {
 
     @BeforeEach
     void setUp() {
-        userRepository = mock(UserRepository.class);
+        accountStatusReader = mock(AccountStatusReader.class);
         logoutHandler = mock(LogoutHandler.class);
-        exceptionHandler = mock(
+        exceptionResolverBridge = mock(
                 SecurityExceptionResolverBridge.class
         );
         filterChain = mock(FilterChain.class);
+
         request = new MockHttpServletRequest(
                 "GET",
                 "/api/users/me"
         );
         response = new MockHttpServletResponse();
+
         filter = new ActiveAccountSessionFilter(
-                userRepository,
+                accountStatusReader,
                 logoutHandler,
-                exceptionHandler
+                exceptionResolverBridge
         );
     }
 
@@ -80,14 +82,14 @@ class ActiveAccountSessionFilterTest {
 
         verify(filterChain).doFilter(request, response);
         verifyNoInteractions(
-                userRepository,
+                accountStatusReader,
                 logoutHandler,
-                exceptionHandler
+                exceptionResolverBridge
         );
     }
 
     @Test
-    void shouldIgnoreAuthenticationWithDifferentPrincipalType()
+    void shouldIgnoreAuthenticationWithUnsupportedPrincipal()
             throws Exception {
         Authentication authentication =
                 UsernamePasswordAuthenticationToken.authenticated(
@@ -95,80 +97,56 @@ class ActiveAccountSessionFilterTest {
                         null,
                         List.of()
                 );
+
         setAuthentication(authentication);
 
         filter.doFilter(request, response, filterChain);
 
         verify(filterChain).doFilter(request, response);
         verifyNoInteractions(
-                userRepository,
+                accountStatusReader,
                 logoutHandler,
-                exceptionHandler
+                exceptionResolverBridge
         );
     }
 
     @Test
     void shouldContinueRequestForActiveAccount()
             throws Exception {
-        User user = authenticatedUser();
+        UUID userId = authenticateUser();
 
-        when(userRepository.findById(user.getId()))
-                .thenReturn(Optional.of(user));
+        when(accountStatusReader.isActive(userId))
+                .thenReturn(true);
 
         filter.doFilter(request, response, filterChain);
 
-        verify(userRepository).findById(user.getId());
+        verify(accountStatusReader).isActive(userId);
         verify(filterChain).doFilter(request, response);
         verifyNoInteractions(
                 logoutHandler,
-                exceptionHandler
+                exceptionResolverBridge
         );
     }
 
     @Test
-    void shouldInvalidateSessionForLockedAccount()
+    void shouldInvalidateSessionForInactiveAccount()
             throws Exception {
-        User user = authenticatedUser();
-        user.lock();
+        UUID userId = authenticateUser();
 
-        when(userRepository.findById(user.getId()))
-                .thenReturn(Optional.of(user));
+        when(accountStatusReader.isActive(userId))
+                .thenReturn(false);
 
-        assertSessionRejected();
+        assertSessionRejected(userId);
     }
 
-    @Test
-    void shouldInvalidateSessionForDisabledAccount()
-            throws Exception {
-        User user = authenticatedUser();
-        user.disable(
-                Instant.parse("2026-07-27T10:15:30Z")
-        );
-
-        when(userRepository.findById(user.getId()))
-                .thenReturn(Optional.of(user));
-
-        assertSessionRejected();
-    }
-
-    @Test
-    void shouldInvalidateSessionWhenAccountNoLongerExists()
-            throws Exception {
-        User user = authenticatedUser();
-
-        when(userRepository.findById(user.getId()))
-                .thenReturn(Optional.empty());
-
-        assertSessionRejected();
-    }
-
-    private User authenticatedUser() {
+    private UUID authenticateUser() {
         User user = User.register(
                 "john.doe",
                 PASSWORD_HASH
         );
         AppUserPrincipal principal =
                 AppUserPrincipal.from(user);
+
         Authentication authentication =
                 UsernamePasswordAuthenticationToken.authenticated(
                         principal,
@@ -178,15 +156,18 @@ class ActiveAccountSessionFilterTest {
 
         setAuthentication(authentication);
 
-        return user;
+        return user.getId();
     }
 
-    private void assertSessionRejected() throws Exception {
+    private void assertSessionRejected(UUID userId)
+            throws Exception {
         Authentication authentication = SecurityContextHolder
                 .getContext()
                 .getAuthentication();
 
         filter.doFilter(request, response, filterChain);
+
+        verify(accountStatusReader).isActive(userId);
 
         verify(logoutHandler).logout(
                 same(request),
@@ -194,25 +175,27 @@ class ActiveAccountSessionFilterTest {
                 same(authentication)
         );
 
-        var exceptionCaptor =
-                org.mockito.ArgumentCaptor.forClass(
+        ArgumentCaptor<AuthenticationException> exceptionCaptor =
+                ArgumentCaptor.forClass(
                         AuthenticationException.class
                 );
 
-        verify(exceptionHandler).commence(
+        verify(exceptionResolverBridge).commence(
                 same(request),
                 same(response),
                 exceptionCaptor.capture()
         );
 
+        AuthenticationException exception =
+                exceptionCaptor.getValue();
+
         assertInstanceOf(
                 InsufficientAuthenticationException.class,
-                exceptionCaptor.getValue()
+                exception
         );
-        assertTrue(
-                exceptionCaptor.getValue()
-                        .getMessage()
-                        .contains("no longer valid")
+        assertEquals(
+                "Session is no longer valid",
+                exception.getMessage()
         );
 
         verify(filterChain, never())

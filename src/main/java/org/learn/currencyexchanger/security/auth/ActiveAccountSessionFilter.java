@@ -5,8 +5,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.learn.currencyexchanger.security.api.SecurityExceptionResolverBridge;
-import org.learn.currencyexchanger.user.application.port.UserRepository;
-import org.learn.currencyexchanger.user.domain.UserStatus;
+import org.learn.currencyexchanger.user.application.port.AccountStatusReader;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,16 +16,17 @@ import java.io.IOException;
 
 public final class ActiveAccountSessionFilter extends
         OncePerRequestFilter {
-    private final UserRepository userRepository;
+
+    private final AccountStatusReader accountStatusReader;
     private final LogoutHandler logoutHandler;
     private final SecurityExceptionResolverBridge exceptionHandler;
 
     public ActiveAccountSessionFilter(
-            UserRepository userRepository,
+            AccountStatusReader accountStatusReader,
             LogoutHandler logoutHandler,
             SecurityExceptionResolverBridge exceptionHandler
     ) {
-        this.userRepository = userRepository;
+        this.accountStatusReader = accountStatusReader;
         this.logoutHandler = logoutHandler;
         this.exceptionHandler = exceptionHandler;
     }
@@ -48,11 +48,9 @@ public final class ActiveAccountSessionFilter extends
             return;
         }
 
-        boolean accountIsActive = userRepository
-                .findById(principal.getUserId())
-                .map(user -> user.getStatus()
-                        == UserStatus.ACTIVE)
-                .orElse(false);
+        boolean accountIsActive = accountStatusReader.isActive(
+                principal.getUserId()
+        );
 
         if (accountIsActive) {
             filterChain.doFilter(request, response);

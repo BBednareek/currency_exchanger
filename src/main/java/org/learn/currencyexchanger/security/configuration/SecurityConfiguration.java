@@ -3,7 +3,7 @@ package org.learn.currencyexchanger.security.configuration;
 import jakarta.servlet.DispatcherType;
 import org.learn.currencyexchanger.security.api.SecurityExceptionResolverBridge;
 import org.learn.currencyexchanger.security.auth.ActiveAccountSessionFilter;
-import org.learn.currencyexchanger.user.application.port.UserRepository;
+import org.learn.currencyexchanger.user.application.port.AccountStatusReader;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -23,12 +23,12 @@ public class SecurityConfiguration {
 
     @Bean
     public ActiveAccountSessionFilter activeAccountSessionFilter(
-            UserRepository userRepository,
+            AccountStatusReader accountStatusReader,
             LogoutHandler logoutHandler,
             SecurityExceptionResolverBridge securityExceptionResolverBridge
     ) {
         return new ActiveAccountSessionFilter(
-                userRepository,
+                accountStatusReader,
                 logoutHandler,
                 securityExceptionResolverBridge
         );
