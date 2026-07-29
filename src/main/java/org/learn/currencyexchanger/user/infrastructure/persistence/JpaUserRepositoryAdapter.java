@@ -1,9 +1,11 @@
 package org.learn.currencyexchanger.user.infrastructure.persistence;
 
+import org.learn.currencyexchanger.user.application.exception.ConcurrentUserModificationException;
 import org.learn.currencyexchanger.user.application.exception.UsernameAlreadyUsedException;
 import org.learn.currencyexchanger.user.application.port.UserRepository;
 import org.learn.currencyexchanger.user.domain.User;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -76,6 +78,11 @@ public class JpaUserRepositoryAdapter implements UserRepository {
                 throw new UsernameAlreadyUsedException(exception);
             }
             throw exception;
+        } catch (OptimisticLockingFailureException exception) {
+            throw new ConcurrentUserModificationException(
+                    user.getId(),
+                    exception
+            );
         }
     }
 }

@@ -5,6 +5,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.learn.currencyexchanger.common.api.problem.ApiProblemCode;
 import org.learn.currencyexchanger.common.api.problem.ApiProblemFactory;
+import org.learn.currencyexchanger.user.application.exception.ConcurrentUserModificationException;
 import org.learn.currencyexchanger.user.application.exception.UserNotFoundException;
 import org.learn.currencyexchanger.user.application.exception.UsernameAlreadyUsedException;
 import org.learn.currencyexchanger.user.domain.UserStatus;
@@ -15,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -158,8 +158,11 @@ class UserApiExceptionHandlerTest {
                         UserStatus.ACTIVE
                 );
 
-                case "concurrent-modification" -> new OptimisticLockingFailureException(
-                        "Sensitive persistence details"
+                case "concurrent-modification" -> new ConcurrentUserModificationException(
+                        USER_ID,
+                        new IllegalStateException(
+                                "Sensitive persistence details"
+                        )
                 );
 
                 default -> new IllegalArgumentException(

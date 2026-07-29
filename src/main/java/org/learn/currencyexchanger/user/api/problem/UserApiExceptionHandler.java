@@ -3,6 +3,7 @@ package org.learn.currencyexchanger.user.api.problem;
 import jakarta.servlet.http.HttpServletRequest;
 import org.learn.currencyexchanger.common.api.problem.ApiProblemCode;
 import org.learn.currencyexchanger.common.api.problem.ApiProblemFactory;
+import org.learn.currencyexchanger.user.application.exception.ConcurrentUserModificationException;
 import org.learn.currencyexchanger.user.application.exception.UserNotFoundException;
 import org.learn.currencyexchanger.user.application.exception.UsernameAlreadyUsedException;
 import org.learn.currencyexchanger.user.domain.exception.DisabledUserCannotBeModifiedException;
@@ -10,7 +11,6 @@ import org.learn.currencyexchanger.user.domain.exception.InvalidUsernameExceptio
 import org.learn.currencyexchanger.user.domain.exception.UserCannotBeUnlockedException;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -64,9 +64,9 @@ public final class UserApiExceptionHandler {
      * Encja User używa @Version, dlatego równoległa aktualizacja
      * może skończyć się wyjątkiem optimistic locking.
      */
-    @ExceptionHandler(OptimisticLockingFailureException.class)
-    public ProblemDetail handleOptimisticLockingFailure(
-            OptimisticLockingFailureException exception,
+    @ExceptionHandler(ConcurrentUserModificationException.class)
+    public ProblemDetail handleConcurrentUserModification(
+            ConcurrentUserModificationException exception,
             HttpServletRequest request
     ) {
         return apiProblemFactory.create(
