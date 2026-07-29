@@ -3,6 +3,7 @@ package org.learn.currencyexchanger.rate.api;
 import org.junit.jupiter.api.Test;
 import org.learn.currencyexchanger.common.api.problem.ApiExceptionHandler;
 import org.learn.currencyexchanger.common.api.problem.ApiProblemFactory;
+import org.learn.currencyexchanger.rate.api.problem.RateApiExceptionHandler;
 import org.learn.currencyexchanger.rate.application.ReferenceRateService;
 import org.learn.currencyexchanger.rate.application.ReferenceRateSnapshot;
 import org.learn.currencyexchanger.rate.application.exception.RateProviderUnavailableException;
@@ -30,7 +31,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(ReferenceRateController.class)
 @Import({
         ApiExceptionHandler.class,
-        ApiProblemFactory.class
+        ApiProblemFactory.class,
+        RateApiExceptionHandler.class
 })
 class ReferenceRateControllerTest {
 

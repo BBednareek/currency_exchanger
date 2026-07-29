@@ -7,14 +7,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.learn.currencyexchanger.rate.application.exception.InvalidRateProviderResponseException;
-import org.learn.currencyexchanger.rate.application.exception.RateProviderUnavailableException;
-import org.learn.currencyexchanger.rate.application.exception.ReferenceRateNotFoundException;
-import org.learn.currencyexchanger.rate.application.exception.UnsupportedCurrencyException;
-import org.learn.currencyexchanger.rate.domain.CurrencyPair;
-import org.learn.currencyexchanger.rate.domain.exception.InvalidCurrencyCodeException;
-import org.learn.currencyexchanger.rate.domain.exception.InvalidCurrencyPairException;
-import org.learn.currencyexchanger.rate.domain.exception.InvalidMoneyAmountException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -57,9 +49,6 @@ class ApiExceptionHandlerTest {
     private static final String BASE_PATH =
             "/api/test/problems";
 
-    private static final CurrencyPair CURRENCY_PAIR =
-            CurrencyPair.of("USD", "PLN");
-
     private final MockMvc mockMvc;
 
     @Autowired
@@ -69,11 +58,6 @@ class ApiExceptionHandlerTest {
 
     private static Stream<Arguments> mappedProblems() {
         return Stream.of(
-                Arguments.of(
-                        "invalid-money-amount",
-                        ApiProblemCode.INVALID_MONEY_AMOUNT,
-                        "Money amount must be greater than zero"
-                ),
                 Arguments.of(
                         "authentication-required",
                         ApiProblemCode.AUTHENTICATION_REQUIRED,
@@ -100,36 +84,6 @@ class ApiExceptionHandlerTest {
                         "unexpected",
                         ApiProblemCode.INTERNAL_ERROR,
                         ApiProblemCode.INTERNAL_ERROR.defaultDetail()
-                ),
-                Arguments.of(
-                        "invalid-currency-code",
-                        ApiProblemCode.INVALID_CURRENCY_CODE,
-                        "Currency code must contain exactly three ASCII letters"
-                ),
-                Arguments.of(
-                        "invalid-currency-pair",
-                        ApiProblemCode.INVALID_CURRENCY_PAIR,
-                        "Base and quote currencies must be different"
-                ),
-                Arguments.of(
-                        "unsupported-currency",
-                        ApiProblemCode.UNSUPPORTED_CURRENCY,
-                        "Currency pair is not supported: USD/PLN"
-                ),
-                Arguments.of(
-                        "reference-rate-not-found",
-                        ApiProblemCode.REFERENCE_RATE_NOT_FOUND,
-                        "Reference rate was not found for: USD/PLN"
-                ),
-                Arguments.of(
-                        "invalid-provider-response",
-                        ApiProblemCode.INVALID_RATE_PROVIDER_RESPONSE,
-                        ApiProblemCode.INVALID_RATE_PROVIDER_RESPONSE.defaultDetail()
-                ),
-                Arguments.of(
-                        "provider-unavailable",
-                        ApiProblemCode.RATE_PROVIDER_UNAVAILABLE,
-                        ApiProblemCode.RATE_PROVIDER_UNAVAILABLE.defaultDetail()
                 )
         );
     }
@@ -358,23 +312,9 @@ class ApiExceptionHandlerTest {
                 case "authentication-failed" -> new BadCredentialsException(
                         "User john.doe does not exist"
                 );
-                case "invalid-money-amount" -> new InvalidMoneyAmountException();
                 case "unexpected" -> new IllegalStateException(
                         "Sensitive implementation details"
                 );
-                case "invalid-currency-code" -> new InvalidCurrencyCodeException();
-
-                case "invalid-currency-pair" -> new InvalidCurrencyPairException();
-
-                case "unsupported-currency" -> new UnsupportedCurrencyException(CURRENCY_PAIR);
-
-                case "reference-rate-not-found" -> new ReferenceRateNotFoundException(CURRENCY_PAIR);
-
-                case "invalid-provider-response" -> new InvalidRateProviderResponseException(
-                        "Sensitive provider response details"
-                );
-
-                case "provider-unavailable" -> new RateProviderUnavailableException();
                 default -> new IllegalArgumentException(
                         "Unknown test case"
                 );

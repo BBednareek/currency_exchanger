@@ -2,13 +2,6 @@ package org.learn.currencyexchanger.common.api.problem;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.jspecify.annotations.NonNull;
-import org.learn.currencyexchanger.rate.application.exception.InvalidRateProviderResponseException;
-import org.learn.currencyexchanger.rate.application.exception.RateProviderUnavailableException;
-import org.learn.currencyexchanger.rate.application.exception.ReferenceRateNotFoundException;
-import org.learn.currencyexchanger.rate.application.exception.UnsupportedCurrencyException;
-import org.learn.currencyexchanger.rate.domain.exception.InvalidCurrencyCodeException;
-import org.learn.currencyexchanger.rate.domain.exception.InvalidCurrencyPairException;
-import org.learn.currencyexchanger.rate.domain.exception.InvalidMoneyAmountException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.ConversionNotSupportedException;
@@ -382,106 +375,6 @@ public final class ApiExceptionHandler
                 exception,
                 ApiProblemCode.INTERNAL_ERROR,
                 headers,
-                request
-        );
-    }
-
-    @ExceptionHandler(InvalidCurrencyCodeException.class)
-    public ProblemDetail handleInvalidCurrencyCode(
-            InvalidCurrencyCodeException exception,
-            HttpServletRequest request
-    ) {
-        return problem(
-                ApiProblemCode.INVALID_CURRENCY_CODE,
-                exception.getMessage(),
-                request
-        );
-    }
-
-    @ExceptionHandler(InvalidCurrencyPairException.class)
-    public ProblemDetail handleInvalidCurrencyPair(
-            InvalidCurrencyPairException exception,
-            HttpServletRequest request
-    ) {
-        return problem(
-                ApiProblemCode.INVALID_CURRENCY_PAIR,
-                exception.getMessage(),
-                request
-        );
-    }
-
-    @ExceptionHandler(UnsupportedCurrencyException.class)
-    public ProblemDetail handleUnsupportedCurrency(
-            UnsupportedCurrencyException exception,
-            HttpServletRequest request
-    ) {
-        return problem(
-                ApiProblemCode.UNSUPPORTED_CURRENCY,
-                exception.getMessage(),
-                request
-        );
-    }
-
-    @ExceptionHandler(ReferenceRateNotFoundException.class)
-    public ProblemDetail handleReferenceRateNotFound(
-            ReferenceRateNotFoundException exception,
-            HttpServletRequest request
-    ) {
-        return problem(
-                ApiProblemCode.REFERENCE_RATE_NOT_FOUND,
-                exception.getMessage(),
-                request
-        );
-    }
-
-    @ExceptionHandler(RateProviderUnavailableException.class)
-    public ProblemDetail handleRateProviderUnavailable(
-            RateProviderUnavailableException exception,
-            HttpServletRequest request
-    ) {
-        log.warn(
-                "Reference rate provider unavailable while handling {} {}",
-                request.getMethod(),
-                request.getRequestURI()
-        );
-
-        log.debug(
-                "Reference rate provider failure details",
-                exception
-        );
-
-        return problem(
-                ApiProblemCode.RATE_PROVIDER_UNAVAILABLE,
-                request
-        );
-    }
-
-    @ExceptionHandler(InvalidRateProviderResponseException.class)
-    public ProblemDetail handleInvalidRateProviderResponse(
-            InvalidRateProviderResponseException exception,
-            HttpServletRequest request
-    ) {
-        log.error(
-                "Reference rate provider returned an invalid response while handling {} {}",
-                request.getMethod(),
-                request.getRequestURI(),
-                exception
-        );
-
-        return problem(
-                ApiProblemCode.INVALID_RATE_PROVIDER_RESPONSE,
-                request
-        );
-    }
-
-    @ExceptionHandler(InvalidMoneyAmountException.class)
-    public ProblemDetail handleInvalidMoneyAmount(
-            InvalidMoneyAmountException exception,
-            HttpServletRequest request
-    ) {
-        return problem(
-                ApiProblemCode.INVALID_MONEY_AMOUNT,
-                exception.getMessage(),
                 request
         );
     }
