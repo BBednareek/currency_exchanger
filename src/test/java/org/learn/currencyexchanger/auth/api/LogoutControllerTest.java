@@ -3,8 +3,8 @@ package org.learn.currencyexchanger.auth.api;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.Test;
-import org.learn.currencyexchanger.common.api.problem.ApiExceptionHandler;
 import org.learn.currencyexchanger.common.api.problem.ApiProblemFactory;
+import org.learn.currencyexchanger.common.api.problem.FrameworkApiExceptionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc(addFilters = false)
 @Import({
         ApiProblemFactory.class,
-        ApiExceptionHandler.class
+        FrameworkApiExceptionHandler.class
 })
 class LogoutControllerTest {
 

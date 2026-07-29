@@ -1,8 +1,8 @@
 package org.learn.currencyexchanger.security;
 
 import org.junit.jupiter.api.Test;
-import org.learn.currencyexchanger.common.api.problem.ApiExceptionHandler;
 import org.learn.currencyexchanger.common.api.problem.ApiProblemFactory;
+import org.learn.currencyexchanger.common.api.problem.FrameworkApiExceptionHandler;
 import org.learn.currencyexchanger.security.api.SecurityExceptionResolverBridge;
 import org.learn.currencyexchanger.security.api.problem.SecurityApiExceptionHandler;
 import org.learn.currencyexchanger.security.configuration.SecurityConfiguration;
@@ -34,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         SessionAuthenticationConfiguration.class,
         SecurityExceptionResolverBridge.class,
         SecurityApiExceptionHandler.class,
-        ApiExceptionHandler.class,
+        FrameworkApiExceptionHandler.class,
         SecurityConfigurationTest.TestController.class,
         ApiProblemFactory.class
 })

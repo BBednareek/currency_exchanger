@@ -2,8 +2,8 @@ package org.learn.currencyexchanger.user.api;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.learn.currencyexchanger.common.api.problem.ApiExceptionHandler;
 import org.learn.currencyexchanger.common.api.problem.ApiProblemFactory;
+import org.learn.currencyexchanger.common.api.problem.FrameworkApiExceptionHandler;
 import org.learn.currencyexchanger.security.auth.AppUserPrincipal;
 import org.learn.currencyexchanger.user.application.UserService;
 import org.learn.currencyexchanger.user.application.UserSnapshot;
@@ -39,7 +39,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(UserController.class)
 @Import({
-        ApiExceptionHandler.class,
+        FrameworkApiExceptionHandler.class,
         ApiProblemFactory.class
 })
 class UserControllerTest {

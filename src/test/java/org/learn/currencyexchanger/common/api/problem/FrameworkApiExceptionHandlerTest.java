@@ -4,25 +4,18 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.stream.Stream;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -32,15 +25,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(
-        controllers = ApiExceptionHandlerTest.TestController.class
+        controllers = FrameworkApiExceptionHandlerTest.TestController.class
 )
 @AutoConfigureMockMvc(addFilters = false)
 @Import({
-        ApiExceptionHandler.class,
+        FrameworkApiExceptionHandler.class,
         ApiProblemFactory.class,
-        ApiExceptionHandlerTest.TestController.class
+        FrameworkApiExceptionHandlerTest.TestController.class
 })
-class ApiExceptionHandlerTest {
+class FrameworkApiExceptionHandlerTest {
 
     private static final String BASE_PATH =
             "/api/test/problems";
@@ -48,28 +41,16 @@ class ApiExceptionHandlerTest {
     private final MockMvc mockMvc;
 
     @Autowired
-    ApiExceptionHandlerTest(MockMvc mockMvc) {
+    FrameworkApiExceptionHandlerTest(MockMvc mockMvc) {
         this.mockMvc = mockMvc;
     }
 
-    private static Stream<Arguments> mappedProblems() {
-        return Stream.of(
-                Arguments.of(
-                        "unexpected",
-                        ApiProblemCode.INTERNAL_ERROR,
-                        ApiProblemCode.INTERNAL_ERROR.defaultDetail()
-                )
-        );
-    }
+    @Test
+    void shouldReturnInternalErrorForUnexpectedException() throws Exception {
+        String path = BASE_PATH + "/unexpected";
 
-    @ParameterizedTest
-    @MethodSource("mappedProblems")
-    void shouldMapApplicatiFonDomainAndSecurityExceptions(
-            String caseName,
-            ApiProblemCode expectedCode,
-            String expectedDetail
-    ) throws Exception {
-        String path = BASE_PATH + "/mapped/" + caseName;
+        ApiProblemCode expectedCode =
+                ApiProblemCode.INTERNAL_ERROR;
 
         mockMvc.perform(
                         get(path)
@@ -77,9 +58,7 @@ class ApiExceptionHandlerTest {
                                         MediaType.APPLICATION_PROBLEM_JSON
                                 )
                 )
-                .andExpect(status().is(
-                        expectedCode.status().value()
-                ))
+                .andExpect(status().isInternalServerError())
                 .andExpect(content().contentTypeCompatibleWith(
                         MediaType.APPLICATION_PROBLEM_JSON
                 ))
@@ -93,12 +72,14 @@ class ApiExceptionHandlerTest {
                         expectedCode.status().value()
                 ))
                 .andExpect(jsonPath("$.detail").value(
-                        expectedDetail
+                        expectedCode.defaultDetail()
                 ))
                 .andExpect(jsonPath("$.instance").value(path))
                 .andExpect(jsonPath("$.code").value(
                         expectedCode.name()
-                ));
+                ))
+                .andExpect(jsonPath("$.exception").doesNotExist())
+                .andExpect(jsonPath("$.stackTrace").doesNotExist());
     }
 
     @Test
@@ -266,21 +247,11 @@ class ApiExceptionHandlerTest {
     @RequestMapping(BASE_PATH)
     public static class TestController {
 
-        @GetMapping("/mapped/{caseName}")
-        void throwMappedException(
-                @PathVariable String caseName
-        ) {
-            throw switch (caseName) {
-                case "data-conflict" -> new DataIntegrityViolationException(
-                        "Sensitive database details"
-                );
-                case "unexpected" -> new IllegalStateException(
-                        "Sensitive implementation details"
-                );
-                default -> new IllegalArgumentException(
-                        "Unknown test case"
-                );
-            };
+        @GetMapping("/unexpected")
+        void throwUnexpectedException() {
+            throw new IllegalStateException(
+                    "Sensitive implementation details"
+            );
         }
 
         @PostMapping(
