@@ -14,7 +14,7 @@ public final class UsernameValidator implements
             String value,
             ConstraintValidatorContext context
     ) {
-        if (value == null) {
+        if (value == null || value.isBlank()) {
             return true;
         }
 

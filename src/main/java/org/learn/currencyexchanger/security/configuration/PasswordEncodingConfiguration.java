@@ -1,5 +1,6 @@
 package org.learn.currencyexchanger.security.configuration;
 
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -9,21 +10,24 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.Map;
 
 @Configuration(proxyBeanMethods = false)
-public class PasswordEncodingConfiguration {
+@EnableConfigurationProperties(PasswordEncodingProperties.class)
+public final class PasswordEncodingConfiguration {
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
+    public PasswordEncoder passwordEncoder(
+            PasswordEncodingProperties properties
+    ) {
         BCryptPasswordEncoder bcrypt =
-                new BCryptPasswordEncoder();
-
-        DelegatingPasswordEncoder delegating =
-                new DelegatingPasswordEncoder(
-                        "bcrypt",
-                        Map.of("bcrypt", bcrypt)
+                new BCryptPasswordEncoder(
+                        properties.bcryptStrength()
                 );
 
-        delegating.setDefaultPasswordEncoderForMatches(bcrypt);
-
-        return delegating;
+        return new DelegatingPasswordEncoder(
+                "bcrypt",
+                Map.of(
+                        "bcrypt",
+                        bcrypt
+                )
+        );
     }
 }

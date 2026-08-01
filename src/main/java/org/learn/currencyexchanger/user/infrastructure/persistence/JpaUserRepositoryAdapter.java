@@ -28,7 +28,7 @@ public class JpaUserRepositoryAdapter implements
 
     private final SpringDataUserRepository springDataUserRepository;
 
-    public JpaUserRepositoryAdapter(SpringDataUserRepository springDataUserRepository) {
+    JpaUserRepositoryAdapter(SpringDataUserRepository springDataUserRepository) {
         this.springDataUserRepository = springDataUserRepository;
     }
 
