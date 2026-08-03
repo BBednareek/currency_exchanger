@@ -25,6 +25,96 @@ class ReferenceRateTest {
     private static final Instant FETCHED_AT =
             Instant.parse("2026-07-28T10:15:30Z");
 
+
+    @Test
+    void shouldRoundRateToMaximumScale() {
+        ReferenceRate referenceRate =
+                new ReferenceRate(
+                        PAIR,
+                        new BigDecimal(
+                                "3.1234567890123456789"
+                        ),
+                        EFFECTIVE_DATE,
+                        FETCHED_AT
+                );
+
+        assertEquals(
+                new BigDecimal(
+                        "3.123456789012345679"
+                ),
+                referenceRate.value()
+        );
+    }
+
+    @Test
+    void shouldAcceptMaximumSupportedRate() {
+        BigDecimal maximumSupportedValue =
+                new BigDecimal(
+                        "99999999999999999999."
+                                + "999999999999999999"
+                );
+
+        ReferenceRate referenceRate =
+                new ReferenceRate(
+                        PAIR,
+                        maximumSupportedValue,
+                        EFFECTIVE_DATE,
+                        FETCHED_AT
+                );
+
+        assertEquals(
+                maximumSupportedValue,
+                referenceRate.value()
+        );
+    }
+
+    @Test
+    void shouldRejectRateWithTooManyIntegerDigits() {
+        assertThrows(
+                InvalidReferenceRateException.class,
+                () -> new ReferenceRate(
+                        PAIR,
+                        new BigDecimal(
+                                "100000000000000000000"
+                        ),
+                        EFFECTIVE_DATE,
+                        FETCHED_AT
+                )
+        );
+    }
+
+    @Test
+    void shouldRejectRateOverflowAfterRounding() {
+        assertThrows(
+                InvalidReferenceRateException.class,
+                () -> new ReferenceRate(
+                        PAIR,
+                        new BigDecimal(
+                                "99999999999999999999."
+                                        + "9999999999999999999"
+                        ),
+                        EFFECTIVE_DATE,
+                        FETCHED_AT
+                )
+        );
+    }
+
+
+    @Test
+    void shouldRejectRateRoundedToZero() {
+        assertThrows(
+                InvalidReferenceRateException.class,
+                () -> new ReferenceRate(
+                        PAIR,
+                        new BigDecimal(
+                                "0.0000000000000000001"
+                        ),
+                        EFFECTIVE_DATE,
+                        FETCHED_AT
+                )
+        );
+    }
+    
     @Test
     void shouldCreateReferenceRate() {
         BigDecimal value =

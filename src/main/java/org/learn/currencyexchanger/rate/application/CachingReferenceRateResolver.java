@@ -140,35 +140,51 @@ public class CachingReferenceRateResolver
                 RateProviderUnavailableException
                 | InvalidRateProviderResponseException exception
         ) {
-            return useFallbackOrRethrow(
+            Optional<ReferenceRate> latestAvailableRate =
+                    referenceRateRepository
+                            .findLatest(pair)
+                            .or(() -> cachedRate);
+
+            return resolveAfterProviderFailure(
                     pair,
-                    cachedRate,
-                    currentTime,
+                    latestAvailableRate,
+                    clock.instant(),
                     exception
             );
         }
     }
 
-    private ResolvedReferenceRate useFallbackOrRethrow(
+    private ResolvedReferenceRate resolveAfterProviderFailure(
             CurrencyPair pair,
-            Optional<ReferenceRate> cachedRate,
+            Optional<ReferenceRate> availableRate,
             Instant currentTime,
             RuntimeException providerFailure
     ) {
-        ReferenceRate fallbackRate =
-                cachedRate.filter(
-                                rate -> referenceRateCachePolicy
-                                        .isUsableAsFallback(
-                                                rate,
-                                                currentTime
-                                        )
-                        )
-                        .orElseThrow(() -> providerFailure);
+        ReferenceRate candidate =
+                availableRate.orElseThrow(
+                        () -> providerFailure
+                );
+
+        if (referenceRateCachePolicy.isFresh(
+                candidate,
+                currentTime
+        )) {
+            return ResolvedReferenceRate.fresh(
+                    candidate
+            );
+        }
+
+        if (!referenceRateCachePolicy.isUsableAsFallback(
+                candidate,
+                currentTime
+        )) {
+            throw providerFailure;
+        }
 
         log.warn(
                 "Using stale reference rate for {} fetched at {}",
                 pair.symbol(),
-                fallbackRate.fetchedAt()
+                candidate.fetchedAt()
         );
 
         log.debug(
@@ -177,7 +193,7 @@ public class CachingReferenceRateResolver
         );
 
         return ResolvedReferenceRate.stale(
-                fallbackRate
+                candidate
         );
     }
 }

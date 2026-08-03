@@ -56,7 +56,7 @@ interface SpringDataReferenceRateRepository
                         rate = EXCLUDED.rate,
                         fetched_at = EXCLUDED.fetched_at
                     WHERE stored_rate.fetched_at
-                            <= EXCLUDED.fetched_at
+                            < EXCLUDED.fetched_at
                     """,
             nativeQuery = true
     )

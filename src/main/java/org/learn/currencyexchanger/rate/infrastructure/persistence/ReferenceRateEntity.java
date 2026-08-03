@@ -37,8 +37,8 @@ class ReferenceRateEntity {
     @Column(
             name = "rate",
             nullable = false,
-            precision = 38,
-            scale = 18
+            precision = ReferenceRate.MAX_PRECISION,
+            scale = ReferenceRate.MAX_SCALE
     )
     private BigDecimal rate;
 

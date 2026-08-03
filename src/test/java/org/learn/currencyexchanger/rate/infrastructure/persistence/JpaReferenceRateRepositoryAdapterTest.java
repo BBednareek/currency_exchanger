@@ -62,6 +62,48 @@ class JpaReferenceRateRepositoryAdapterTest {
     }
 
     @Test
+    void shouldNotOverwriteRateWithEqualFetchTimestamp() {
+        Instant fetchedAt =
+                Instant.parse(
+                        "2026-07-28T11:00:00Z"
+                );
+
+        repository.store(
+                new ReferenceRate(
+                        PAIR,
+                        new BigDecimal("3.680000"),
+                        LocalDate.of(2026, 7, 27),
+                        fetchedAt
+                )
+        );
+
+        ReferenceRate stored =
+                repository.store(
+                        new ReferenceRate(
+                                PAIR,
+                                new BigDecimal("3.670000"),
+                                LocalDate.of(2026, 7, 27),
+                                fetchedAt
+                        )
+                );
+
+        assertNumericallyEqual(
+                new BigDecimal("3.680000"),
+                stored.value()
+        );
+
+        assertEquals(
+                fetchedAt,
+                stored.fetchedAt()
+        );
+
+        assertEquals(
+                1L,
+                countStoredRates()
+        );
+    }
+
+    @Test
     void shouldStoreAndFindLatestReferenceRate() {
         ReferenceRate expected = rate(
                 "3.672100",

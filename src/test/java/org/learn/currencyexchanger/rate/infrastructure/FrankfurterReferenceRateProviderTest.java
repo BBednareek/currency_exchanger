@@ -79,6 +79,62 @@ class FrankfurterReferenceRateProviderTest {
         server.verify();
     }
 
+
+    @Test
+    void shouldRejectRateExceedingSupportedPrecision() {
+        server.expect(
+                        requestTo(
+                                BASE_URL + "/rate/USD/PLN"
+                        )
+                )
+                .andRespond(withSuccess(
+                        """
+                                {
+                                  "date": "2026-07-27",
+                                  "base": "USD",
+                                  "quote": "PLN",
+                                  "rate": 100000000000000000000
+                                }
+                                """,
+                        MediaType.APPLICATION_JSON
+                ));
+
+        assertThrows(
+                InvalidRateProviderResponseException.class,
+                () -> provider.fetchLatest(PAIR)
+        );
+    }
+
+    @Test
+    void shouldNormalizeRateExceedingSupportedScale() {
+        server.expect(
+                        requestTo(
+                                BASE_URL + "/rate/USD/PLN"
+                        )
+                )
+                .andRespond(withSuccess(
+                        """
+                                {
+                                  "date": "2026-07-27",
+                                  "base": "USD",
+                                  "quote": "PLN",
+                                  "rate": 3.1234567890123456789
+                                }
+                                """,
+                        MediaType.APPLICATION_JSON
+                ));
+
+        ReferenceRate result =
+                provider.fetchLatest(PAIR);
+
+        assertEquals(
+                new BigDecimal(
+                        "3.123456789012345679"
+                ),
+                result.value()
+        );
+    }
+
     @Test
     void shouldFetchAndMapReferenceRate() {
         server.expect(

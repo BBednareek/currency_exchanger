@@ -85,6 +85,121 @@ class CachingReferenceRateResolverTest {
         }
     }
 
+    @Test
+    void shouldReturnLatestStaleRateStoredByAnotherInstance() {
+        ReferenceRate originallyCachedRate = rate(
+                "3.620000",
+                CURRENT_TIME.minus(
+                        Duration.ofHours(3)
+                )
+        );
+
+        ReferenceRate newerStaleRate = rate(
+                "3.660000",
+                CURRENT_TIME.minus(
+                        Duration.ofHours(2)
+                )
+        );
+
+        when(referenceRateRepository.findLatest(PAIR))
+                .thenReturn(
+                        Optional.of(originallyCachedRate),
+                        Optional.of(originallyCachedRate),
+                        Optional.of(newerStaleRate)
+                );
+
+        when(referenceRateProvider.fetchLatest(PAIR))
+                .thenThrow(
+                        new RateProviderUnavailableException()
+                );
+
+        ResolvedReferenceRate result =
+                resolver.resolve(PAIR);
+
+        assertResolvedRate(
+                newerStaleRate,
+                result,
+                true
+        );
+
+        verify(referenceRateRepository, never())
+                .store(any());
+    }
+
+    @Test
+    void shouldPropagateProviderFailureWhenCacheRemainsEmpty() {
+        RateProviderUnavailableException expected =
+                new RateProviderUnavailableException();
+
+        when(referenceRateRepository.findLatest(PAIR))
+                .thenReturn(Optional.empty());
+
+        when(referenceRateProvider.fetchLatest(PAIR))
+                .thenThrow(expected);
+
+        RateProviderUnavailableException result =
+                assertThrows(
+                        RateProviderUnavailableException.class,
+                        () -> resolver.resolve(PAIR)
+                );
+
+        assertSame(expected, result);
+
+        verify(
+                referenceRateRepository,
+                times(3)
+        ).findLatest(PAIR);
+
+        verify(referenceRateRepository, never())
+                .store(any());
+    }
+
+    @Test
+    void shouldReturnFreshRateStoredByAnotherInstanceWhenProviderFails() {
+        ReferenceRate expiredRate = rate(
+                "3.640000",
+                CURRENT_TIME.minus(
+                        Duration.ofHours(2)
+                )
+        );
+
+        ReferenceRate freshRateFromAnotherInstance = rate(
+                "3.680000",
+                CURRENT_TIME.minus(
+                        Duration.ofMinutes(5)
+                )
+        );
+
+        when(referenceRateRepository.findLatest(PAIR))
+                .thenReturn(
+                        Optional.of(expiredRate),
+                        Optional.of(expiredRate),
+                        Optional.of(freshRateFromAnotherInstance)
+                );
+
+        when(referenceRateProvider.fetchLatest(PAIR))
+                .thenThrow(
+                        new RateProviderUnavailableException()
+                );
+
+        ResolvedReferenceRate result =
+                resolver.resolve(PAIR);
+
+        assertResolvedRate(
+                freshRateFromAnotherInstance,
+                result,
+                false
+        );
+
+        verify(
+                referenceRateRepository,
+                times(3)
+        ).findLatest(PAIR);
+
+        verify(referenceRateRepository, never())
+                .store(any());
+    }
+
     @BeforeEach
     void setUp() {
         ReferenceRateCachePolicy cachePolicy =
