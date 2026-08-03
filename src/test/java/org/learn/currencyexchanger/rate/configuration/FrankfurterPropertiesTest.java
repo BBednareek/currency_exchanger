@@ -3,6 +3,7 @@ package org.learn.currencyexchanger.rate.configuration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.net.URI;
 import java.time.Duration;
@@ -18,6 +19,8 @@ class FrankfurterPropertiesTest {
             URI.create(
                     "https://api.frankfurter.dev/v2"
             );
+
+    private static final int MAXIMUM_EFFECTIVE_DATE_AGE_DAYS = 7;
 
     private static final Duration CONNECT_TIMEOUT =
             Duration.ofSeconds(2);
@@ -48,7 +51,8 @@ class FrankfurterPropertiesTest {
                 new FrankfurterProperties(
                         BASE_URL,
                         CONNECT_TIMEOUT,
-                        READ_TIMEOUT
+                        READ_TIMEOUT,
+                        MAXIMUM_EFFECTIVE_DATE_AGE_DAYS
                 );
 
         assertAll(
@@ -63,6 +67,10 @@ class FrankfurterPropertiesTest {
                 () -> assertEquals(
                         READ_TIMEOUT,
                         properties.readTimeout()
+                ),
+                () -> assertEquals(
+                        MAXIMUM_EFFECTIVE_DATE_AGE_DAYS,
+                        properties.maximumEffectiveDateAgeDays()
                 )
         );
     }
@@ -75,7 +83,8 @@ class FrankfurterPropertiesTest {
                 () -> new FrankfurterProperties(
                         baseUrl,
                         CONNECT_TIMEOUT,
-                        READ_TIMEOUT
+                        READ_TIMEOUT,
+                        MAXIMUM_EFFECTIVE_DATE_AGE_DAYS
                 )
         );
     }
@@ -91,7 +100,8 @@ class FrankfurterPropertiesTest {
                 () -> new FrankfurterProperties(
                         baseUrl,
                         CONNECT_TIMEOUT,
-                        READ_TIMEOUT
+                        READ_TIMEOUT,
+                        MAXIMUM_EFFECTIVE_DATE_AGE_DAYS
                 )
         );
     }
@@ -107,7 +117,8 @@ class FrankfurterPropertiesTest {
                 () -> new FrankfurterProperties(
                         baseUrl,
                         CONNECT_TIMEOUT,
-                        READ_TIMEOUT
+                        READ_TIMEOUT,
+                        MAXIMUM_EFFECTIVE_DATE_AGE_DAYS
                 )
         );
     }
@@ -122,7 +133,8 @@ class FrankfurterPropertiesTest {
                 () -> new FrankfurterProperties(
                         BASE_URL,
                         timeout,
-                        READ_TIMEOUT
+                        READ_TIMEOUT,
+                        MAXIMUM_EFFECTIVE_DATE_AGE_DAYS
                 )
         );
     }
@@ -137,7 +149,8 @@ class FrankfurterPropertiesTest {
                 () -> new FrankfurterProperties(
                         BASE_URL,
                         CONNECT_TIMEOUT,
-                        timeout
+                        timeout,
+                        MAXIMUM_EFFECTIVE_DATE_AGE_DAYS
                 )
         );
     }
@@ -150,7 +163,8 @@ class FrankfurterPropertiesTest {
                         () -> new FrankfurterProperties(
                                 null,
                                 CONNECT_TIMEOUT,
-                                READ_TIMEOUT
+                                READ_TIMEOUT,
+                                MAXIMUM_EFFECTIVE_DATE_AGE_DAYS
                         )
                 ),
                 () -> assertThrows(
@@ -158,7 +172,8 @@ class FrankfurterPropertiesTest {
                         () -> new FrankfurterProperties(
                                 BASE_URL,
                                 null,
-                                READ_TIMEOUT
+                                READ_TIMEOUT,
+                                MAXIMUM_EFFECTIVE_DATE_AGE_DAYS
                         )
                 ),
                 () -> assertThrows(
@@ -166,8 +181,25 @@ class FrankfurterPropertiesTest {
                         () -> new FrankfurterProperties(
                                 BASE_URL,
                                 CONNECT_TIMEOUT,
-                                null
+                                null,
+                                MAXIMUM_EFFECTIVE_DATE_AGE_DAYS
                         )
+                )
+        );
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {0, -1})
+    void shouldRejectInvalidMaximumEffectiveDateAge(
+            int maximumAgeDays
+    ) {
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> new FrankfurterProperties(
+                        BASE_URL,
+                        CONNECT_TIMEOUT,
+                        READ_TIMEOUT,
+                        maximumAgeDays
                 )
         );
     }

@@ -17,6 +17,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 class FrankfurterConfigurationTest {
 
+    private final static int MAXIMUM_EFFECTIVE_DATE_AGE_DAYS = 7;
+
     private final ApplicationContextRunner contextRunner =
             new ApplicationContextRunner()
                     .withBean(
@@ -34,7 +36,8 @@ class FrankfurterConfigurationTest {
                             "frankfurter.base-url="
                                     + "https://api.frankfurter.dev/v2",
                             "frankfurter.connect-timeout=2s",
-                            "frankfurter.read-timeout=3s"
+                            "frankfurter.read-timeout=3s",
+                            "frankfurter.maximum-effective-date-age-days=7"
                     );
 
     @Test
@@ -77,6 +80,11 @@ class FrankfurterConfigurationTest {
             assertEquals(
                     Duration.ofSeconds(3),
                     properties.readTimeout()
+            );
+
+            assertEquals(
+                    MAXIMUM_EFFECTIVE_DATE_AGE_DAYS,
+                    properties.maximumEffectiveDateAgeDays()
             );
         });
     }

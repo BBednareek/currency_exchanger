@@ -17,6 +17,7 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
 import java.time.Clock;
+import java.time.LocalDate;
 import java.util.Objects;
 
 public final class FrankfurterReferenceRateProvider
@@ -24,10 +25,12 @@ public final class FrankfurterReferenceRateProvider
 
     private final RestClient restClient;
     private final Clock clock;
+    private final int maximumEffectiveDateAgeDays;
 
     public FrankfurterReferenceRateProvider(
             RestClient restClient,
-            Clock clock
+            Clock clock,
+            int maximumEffectiveDateAgeDays
     ) {
         this.restClient = Objects.requireNonNull(
                 restClient,
@@ -38,6 +41,14 @@ public final class FrankfurterReferenceRateProvider
                 clock,
                 "Clock cannot be null"
         );
+
+        if (maximumEffectiveDateAgeDays <= 0) {
+            throw new IllegalArgumentException(
+                    "Maximum effective date age must be greater than zero"
+            );
+        }
+        this.maximumEffectiveDateAgeDays = maximumEffectiveDateAgeDays;
+
     }
 
 
@@ -110,6 +121,8 @@ public final class FrankfurterReferenceRateProvider
                 );
             }
 
+            validateEffectiveDate(response.date());
+
             return new ReferenceRate(
                     requestedPair,
                     response.rate(),
@@ -123,6 +136,35 @@ public final class FrankfurterReferenceRateProvider
                 | NullPointerException exception
         ) {
             throw new InvalidRateProviderResponseException(exception);
+        }
+    }
+
+    private void validateEffectiveDate(
+            LocalDate effectiveDate
+    ) {
+        if (effectiveDate == null) {
+            throw new InvalidRateProviderResponseException(
+                    "effective date is missing"
+            );
+        }
+
+        LocalDate currentDate = LocalDate.now(clock);
+
+        if (effectiveDate.isAfter(currentDate)) {
+            throw new InvalidRateProviderResponseException(
+                    "effective date cannot be in the future"
+            );
+        }
+
+        LocalDate oldestAcceptedDate =
+                currentDate.minusDays(
+                        maximumEffectiveDateAgeDays
+                );
+
+        if (effectiveDate.isBefore(oldestAcceptedDate)) {
+            throw new InvalidRateProviderResponseException(
+                    "effective date is older than the accepted limit"
+            );
         }
     }
 }

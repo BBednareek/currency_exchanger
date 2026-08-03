@@ -47,6 +47,8 @@ class FrankfurterReferenceRateProviderTest {
     private static final Instant FETCHED_AT =
             Instant.parse("2026-07-28T10:15:30Z");
 
+    private static final int MAXIMUM_EFFECTIVE_DATE_AGE_DAYS = 7;
+
     private MockRestServiceServer server;
     private FrankfurterReferenceRateProvider provider;
 
@@ -67,7 +69,8 @@ class FrankfurterReferenceRateProviderTest {
         provider =
                 new FrankfurterReferenceRateProvider(
                         builder.build(),
-                        clock
+                        clock,
+                        MAXIMUM_EFFECTIVE_DATE_AGE_DAYS
                 );
     }
 
@@ -120,6 +123,56 @@ class FrankfurterReferenceRateProviderTest {
                         FETCHED_AT,
                         result.fetchedAt()
                 )
+        );
+    }
+
+    @Test
+    void shouldRejectFutureEffectiveDate() {
+        server.expect(
+                        requestTo(
+                                BASE_URL + "/rate/USD/PLN"
+                        )
+                )
+                .andRespond(withSuccess(
+                        """
+                                {
+                                  "date": "2026-07-29",
+                                  "base": "USD",
+                                  "quote": "PLN",
+                                  "rate": 3.672100
+                                }
+                                """,
+                        MediaType.APPLICATION_JSON
+                ));
+
+        assertThrows(
+                InvalidRateProviderResponseException.class,
+                () -> provider.fetchLatest(PAIR)
+        );
+    }
+
+    @Test
+    void shouldRejectExcessivelyOldEffectiveDate() {
+        server.expect(
+                        requestTo(
+                                BASE_URL + "/rate/USD/PLN"
+                        )
+                )
+                .andRespond(withSuccess(
+                        """
+                                {
+                                  "date": "2026-07-20",
+                                  "base": "USD",
+                                  "quote": "PLN",
+                                  "rate": 3.672100
+                                }
+                                """,
+                        MediaType.APPLICATION_JSON
+                ));
+
+        assertThrows(
+                InvalidRateProviderResponseException.class,
+                () -> provider.fetchLatest(PAIR)
         );
     }
 

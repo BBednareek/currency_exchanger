@@ -22,11 +22,13 @@ public class FrankfurterConfiguration {
     public ReferenceRateProvider referenceRateProvider(
             @Qualifier("frankfurterRestClient")
             RestClient restClient,
-            Clock clock
+            Clock clock,
+            FrankfurterProperties properties
     ) {
         return new FrankfurterReferenceRateProvider(
                 restClient,
-                clock
+                clock,
+                properties.maximumEffectiveDateAgeDays()
         );
     }
 

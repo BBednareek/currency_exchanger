@@ -10,7 +10,8 @@ import java.util.Objects;
 public record FrankfurterProperties(
         URI baseUrl,
         Duration connectTimeout,
-        Duration readTimeout
+        Duration readTimeout,
+        int maximumEffectiveDateAgeDays
 ) {
 
     public FrankfurterProperties {
@@ -24,6 +25,11 @@ public record FrankfurterProperties(
         requirePositive(
                 readTimeout,
                 "Read timeout"
+        );
+
+        requirePositive(
+                maximumEffectiveDateAgeDays,
+                "Maximum effective date age in days"
         );
     }
 
@@ -55,6 +61,22 @@ public record FrankfurterProperties(
         }
 
 
+    }
+
+    private static void requirePositive(
+            int value,
+            String propertyName
+    ) {
+        Objects.requireNonNull(
+                propertyName,
+                "Property name cannot be null"
+        );
+
+        if (value <= 0) {
+            throw new IllegalArgumentException(
+                    propertyName + " must be greater than zero"
+            );
+        }
     }
 
     private static void requirePositive(

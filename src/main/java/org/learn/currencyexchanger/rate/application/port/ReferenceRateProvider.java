@@ -5,4 +5,6 @@ import org.learn.currencyexchanger.rate.domain.ReferenceRate;
 
 public interface ReferenceRateProvider {
     ReferenceRate fetchLatest(CurrencyPair pair);
+
+
 }
