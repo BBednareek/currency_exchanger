@@ -3,8 +3,11 @@ package org.learn.currencyexchanger.auth.api;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import org.learn.currencyexchanger.auth.application.AuthenticationAttemptService;
+import org.learn.currencyexchanger.auth.application.AuthenticationAttemptTicket;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -24,15 +27,19 @@ public class LoginController {
     private final AuthenticationManager authenticationManager;
     private final SecurityContextRepository securityContextRepository;
     private final SessionAuthenticationStrategy sessionAuthenticationStrategy;
+    private final AuthenticationAttemptService authenticationAttemptService;
     private final SecurityContextHolderStrategy securityContextHolderStrategy;
 
-    public LoginController(AuthenticationManager authenticationManager,
-                           SecurityContextRepository securityContextRepository,
-                           SessionAuthenticationStrategy sessionAuthenticationStrategy
+    public LoginController(
+            AuthenticationManager authenticationManager,
+            SecurityContextRepository securityContextRepository,
+            SessionAuthenticationStrategy sessionAuthenticationStrategy,
+            AuthenticationAttemptService authenticationAttemptService
     ) {
         this.authenticationManager = authenticationManager;
         this.securityContextRepository = securityContextRepository;
         this.sessionAuthenticationStrategy = sessionAuthenticationStrategy;
+        this.authenticationAttemptService = authenticationAttemptService;
         this.securityContextHolderStrategy =
                 SecurityContextHolder.getContextHolderStrategy();
     }
@@ -43,14 +50,30 @@ public class LoginController {
             HttpServletRequest httpRequest,
             HttpServletResponse httpResponse
     ) {
+        AuthenticationAttemptTicket attemptTicket =
+                authenticationAttemptService.beginAttempt(
+                        request.username()
+                );
+
         Authentication authenticationRequest =
                 UsernamePasswordAuthenticationToken.unauthenticated(
                         request.username(),
                         request.password()
                 );
 
-        Authentication authenticationResult =
-                authenticationManager.authenticate(authenticationRequest);
+        Authentication authenticationResult;
+
+        try {
+            authenticationResult =
+                    authenticationManager.authenticate(
+                            authenticationRequest
+                    );
+        } catch (BadCredentialsException exception) {
+            authenticationAttemptService.recordFailure(attemptTicket);
+            throw exception;
+        }
+
+        authenticationAttemptService.recordSuccess(attemptTicket);
 
         sessionAuthenticationStrategy.onAuthentication(
                 authenticationResult,

@@ -145,6 +145,12 @@ public enum ApiProblemCode {
             "Rate provider unavailable",
             "The reference rate provider is temporarily unavailable"
     ),
+    AUTHENTICATION_THROTTLED(
+            "authentication-throttled",
+            HttpStatus.TOO_MANY_REQUESTS,
+            "Too many authentication attempts",
+            "Too many authentication attempts. Try again later."
+    ),
     INTERNAL_ERROR(
             "internal-error",
             HttpStatus.INTERNAL_SERVER_ERROR,

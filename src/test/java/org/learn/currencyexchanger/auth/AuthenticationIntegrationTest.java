@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -40,6 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -174,6 +176,37 @@ class AuthenticationIntegrationTest {
                 user.getUsername(),
                 WRONG_PASSWORD
         );
+    }
+
+    @Test
+    void shouldThrottleFurtherLoginsAfterMaximumFailedAttempts()
+            throws Exception {
+        User user = persistUser("throttled_");
+        CsrfSession csrf = obtainCsrfToken();
+
+        for (int attempt = 0; attempt < 5; attempt++) {
+            login(
+                    csrf,
+                    user.getUsername(),
+                    WRONG_PASSWORD
+            )
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.code")
+                            .value("AUTHENTICATION_FAILED"));
+        }
+
+        login(
+                csrf,
+                user.getUsername().toUpperCase(Locale.ROOT),
+                PASSWORD
+        )
+                .andExpect(status().isTooManyRequests())
+                .andExpect(content().contentTypeCompatibleWith(
+                        MediaType.APPLICATION_PROBLEM_JSON
+                ))
+                .andExpect(jsonPath("$.code")
+                        .value("AUTHENTICATION_THROTTLED"))
+                .andExpect(header().exists(HttpHeaders.RETRY_AFTER));
     }
 
     @Test

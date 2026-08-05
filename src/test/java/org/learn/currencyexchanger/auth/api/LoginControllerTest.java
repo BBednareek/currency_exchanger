@@ -5,6 +5,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.learn.currencyexchanger.auth.application.AuthenticationAttemptService;
+import org.learn.currencyexchanger.auth.application.AuthenticationAttemptTicket;
+import org.learn.currencyexchanger.auth.domain.AuthenticationSubjectKey;
 import org.learn.currencyexchanger.common.api.problem.ApiProblemFactory;
 import org.learn.currencyexchanger.common.api.problem.FrameworkApiExceptionHandler;
 import org.learn.currencyexchanger.security.api.problem.SecurityApiExceptionHandler;
@@ -32,7 +35,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.same;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -68,7 +73,11 @@ class LoginControllerTest {
     @MockitoBean
     private SessionAuthenticationStrategy sessionAuthenticationStrategy;
 
+    @MockitoBean
+    private AuthenticationAttemptService authenticationAttemptService;
+
     private Authentication authenticationResult;
+    private AuthenticationAttemptTicket attemptTicket;
 
     @BeforeEach
     void setUp() {
@@ -83,6 +92,13 @@ class LoginControllerTest {
                         null,
                         principal.getAuthorities()
                 );
+
+        attemptTicket = new AuthenticationAttemptTicket(
+                AuthenticationSubjectKey.fromUsername(USERNAME)
+        );
+
+        when(authenticationAttemptService.beginAttempt(anyString()))
+                .thenReturn(attemptTicket);
     }
 
     @AfterEach
@@ -113,6 +129,11 @@ class LoginControllerTest {
 
         verify(authenticationManager)
                 .authenticate(authenticationRequestCaptor.capture());
+
+        verify(authenticationAttemptService).beginAttempt(USERNAME);
+        verify(authenticationAttemptService).recordSuccess(attemptTicket);
+        verify(authenticationAttemptService, never())
+                .recordFailure(any(AuthenticationAttemptTicket.class));
 
         Authentication authenticationRequest =
                 authenticationRequestCaptor.getValue();
@@ -187,6 +208,11 @@ class LoginControllerTest {
                 securityContextRepository
         );
 
+        verify(authenticationAttemptService).beginAttempt(USERNAME);
+        verify(authenticationAttemptService).recordFailure(attemptTicket);
+        verify(authenticationAttemptService, never())
+                .recordSuccess(any(AuthenticationAttemptTicket.class));
+
         assertNull(
                 SecurityContextHolder.getContext().getAuthentication()
         );
@@ -216,7 +242,8 @@ class LoginControllerTest {
         verifyNoInteractions(
                 authenticationManager,
                 sessionAuthenticationStrategy,
-                securityContextRepository
+                securityContextRepository,
+                authenticationAttemptService
         );
     }
 }

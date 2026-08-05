@@ -1,12 +1,15 @@
 package org.learn.currencyexchanger.auth.api.problem;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.learn.currencyexchanger.auth.application.exception.TooManyAuthenticationAttemptsException;
 import org.learn.currencyexchanger.auth.domain.exception.InvalidPasswordException;
 import org.learn.currencyexchanger.common.api.problem.ApiProblemCode;
 import org.learn.currencyexchanger.common.api.problem.ApiProblemFactory;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -31,5 +34,27 @@ public final class AuthApiExceptionHandler {
                 exception.getMessage(),
                 request
         );
+    }
+
+    @ExceptionHandler(TooManyAuthenticationAttemptsException.class)
+    public ResponseEntity<ProblemDetail> handleTooManyAuthenticationAttempts(
+            TooManyAuthenticationAttemptsException exception,
+            HttpServletRequest request
+    ) {
+        ApiProblemCode code = ApiProblemCode.AUTHENTICATION_THROTTLED;
+
+        ProblemDetail problem = apiProblemFactory.create(
+                code,
+                exception.getMessage(),
+                request
+        );
+
+        return ResponseEntity
+                .status(code.status())
+                .header(
+                        HttpHeaders.RETRY_AFTER,
+                        Long.toString(exception.retryAfterSeconds())
+                )
+                .body(problem);
     }
 }
